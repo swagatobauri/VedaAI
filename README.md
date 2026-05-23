@@ -1,7 +1,7 @@
 <div align="center">
   <img src="frontend/public/assets/banner.png" alt="VedaAI Banner" width="100%" style="border-radius: 20px"/>
   
-  # 🚀 VedaAI
+  # VedaAI
   **The ultimate AI-powered Teacher Toolkit.**  
   *Because grading papers and writing exams manually is so 2010.*
 
@@ -21,7 +21,7 @@ Welcome to **VedaAI**, your new favorite digital teaching assistant! VedaAI take
 
 Oh, and it also organizes your students into groups and emails them the assignments. You basically just sit back and sip your coffee. ☕
 
-## ✨ Features That Will Save Your Weekend
+##  Features That Will Save Your Weekend
 
 - 🧠 **Instant Exam Generation:** Upload a PDF or image, and VedaAI parses the text and crafts highly relevant questions (MCQs, Short Answer, Long Answer).
 - ⚡ **Lightning Fast AI:** Powered by Groq's insanely fast inference engine. It thinks faster than a student making excuses for missing homework.
@@ -48,6 +48,9 @@ Oh, and it also organizes your students into groups and emails them the assignme
 - **Email:** Nodemailer
 
 ---
+
+## 📚 Documentation
+Want to know how the gears turn? Check out the **[SYSTEM_DESIGN.md](./SYSTEM_DESIGN.md)** for our High-Level and Low-Level architecture docs. It's written in plain English, we promise.
 
 ## 🚀 Getting Started
 
@@ -100,12 +103,3 @@ npm run dev
 Navigate to `http://localhost:3000` and marvel at your creation!
 
 ---
-
-## 📚 Documentation
-Want to know how the gears turn? Check out the **[SYSTEM_DESIGN.md](./SYSTEM_DESIGN.md)** for our High-Level and Low-Level architecture docs. It's written in plain English, we promise.
-
-## 🤝 Contributing
-Found a bug? Want to add a feature that grades the papers automatically so we literally never have to work again? Pull requests are welcome!
-
----
-*Built with ❤️ (and entirely too much caffeine) by Swagato.*
