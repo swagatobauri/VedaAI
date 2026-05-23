@@ -1,7 +1,11 @@
 import { Plus } from "lucide-react";
 import Image from "next/image";
 
-export function EmptyState() {
+interface EmptyStateProps {
+  onCreateClick?: () => void;
+}
+
+export function EmptyState({ onCreateClick }: EmptyStateProps) {
   return (
     <div className="flex flex-col items-center justify-center h-full max-w-md mx-auto px-4 gap-[32px] w-full">
       
@@ -23,7 +27,10 @@ export function EmptyState() {
         </p>
       </div>
 
-      <button className="flex items-center justify-center gap-1 bg-[#18181B] text-white h-[46px] px-6 rounded-full transition-colors text-sm font-medium shadow-md hover:bg-black">
+      <button 
+        onClick={onCreateClick}
+        className="flex items-center justify-center gap-1 bg-[#18181B] text-white h-[46px] px-6 rounded-full transition-colors text-sm font-medium shadow-md hover:bg-black"
+      >
         <Plus size={18} />
         Create Your First Assignment
       </button>

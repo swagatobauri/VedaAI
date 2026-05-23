@@ -65,7 +65,7 @@ export function Sidebar() {
             alt="Sparkles" 
             width={18} 
             height={18} 
-            className="object-contain align-middle"
+            className="object-contain align-middle w-auto h-auto"
           />
           <span className="align-middle">
             Create Assignment
@@ -82,7 +82,7 @@ export function Sidebar() {
             <Users size={18} />
             My Groups
           </Link>
-          <Link href="/assignments" className="flex items-center gap-3 px-4 py-3 text-gray-900 bg-gray-100 rounded-xl transition-colors text-sm font-medium">
+          <Link href="/assignments" className="flex items-center gap-3 px-4 py-3 text-gray-500 hover:text-gray-900 hover:bg-gray-50 rounded-xl transition-colors text-sm font-medium">
             <FileText size={18} />
             Assignments
           </Link>

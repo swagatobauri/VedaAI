@@ -1,13 +1,21 @@
 import { ArrowLeft, Bell, ChevronDown, LayoutGrid, Menu } from "lucide-react";
 import Image from "next/image";
 
-export function Header() {
+interface HeaderProps {
+  onBack?: () => void;
+  isCreating?: boolean;
+}
+
+export function Header({ onBack, isCreating }: HeaderProps) {
   return (
     <header className="sticky top-[12px] z-40 flex items-center justify-between w-auto h-[56px] pl-[24px] pr-[12px] mx-[10px] md:ml-0 md:mr-[12px] bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.08)]">
       
       {/* Desktop Left side */}
       <div className="hidden md:flex items-center gap-2">
-        <button className="p-1.5 -ml-1.5 hover:bg-gray-200/50 rounded-full transition-colors text-gray-600">
+        <button 
+          onClick={onBack}
+          className="p-1.5 -ml-1.5 hover:bg-gray-200/50 rounded-full transition-colors text-gray-600"
+        >
           <ArrowLeft size={20} />
         </button>
 
