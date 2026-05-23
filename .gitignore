@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+
+# Environment & Secrets
+.env
+.env.local
+.env.production
+firebase-service-account.json
+
+# Database
+*.db
+*.db-journal
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Build artifacts
+.next/
+out/
+build/
+dist/
+
+# Uploads
+uploads/
+
+# Debug
+npm-debug.log*
+yarn-debug.log*

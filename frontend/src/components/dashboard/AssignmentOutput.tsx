@@ -1,14 +1,78 @@
-import { Download } from "lucide-react";
+import { Download, Send, X, Users, Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import Cookies from "js-cookie";
 
 interface AssignmentOutputProps {
   onBack: () => void;
   paper: any;
+  assignmentId?: string | null;
 }
 
-export function AssignmentOutput({ onBack, paper }: AssignmentOutputProps) {
-  
+export function AssignmentOutput({ onBack, paper, assignmentId }: AssignmentOutputProps) {
+  const [showSendModal, setShowSendModal] = useState(false);
+  const [groups, setGroups] = useState<any[]>([]);
+  const [selectedGroupId, setSelectedGroupId] = useState("");
+  const [isSending, setIsSending] = useState(false);
+  const [loadingGroups, setLoadingGroups] = useState(false);
+
   const handlePrint = () => {
     window.print();
+  };
+
+  const openSendModal = async () => {
+    setShowSendModal(true);
+    setLoadingGroups(true);
+    try {
+      const token = Cookies.get("token");
+      const res = await fetch("/api/groups", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        setGroups(await res.json());
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoadingGroups(false);
+    }
+  };
+
+  const handleSend = async () => {
+    if (!assignmentId) {
+      alert("Please save the assignment first to send it.");
+      return;
+    }
+    if (!selectedGroupId) {
+      alert("Please select a group");
+      return;
+    }
+
+    setIsSending(true);
+    try {
+      const token = Cookies.get("token");
+      const res = await fetch(`/api/assignments/${assignmentId}/send`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ groupId: selectedGroupId })
+      });
+
+      if (res.ok) {
+        alert("Assignment sent successfully to the group!");
+        setShowSendModal(false);
+        setSelectedGroupId("");
+      } else {
+        const error = await res.json();
+        alert("Failed to send: " + (error.error || "Unknown error"));
+      }
+    } catch (e) {
+      console.error(e);
+      alert("An error occurred while sending.");
+    } finally {
+      setIsSending(false);
+    }
   };
 
   if (!paper || !paper.header) {
@@ -29,36 +93,45 @@ export function AssignmentOutput({ onBack, paper }: AssignmentOutputProps) {
             Certainly! Here is your customized Question Paper for {paper.header.subject} {paper.header.class} based on your instructions.
           </p>
         </div>
-        <button 
-          onClick={handlePrint}
-          className="flex items-center gap-2 bg-white text-[#18181B] h-[40px] px-5 rounded-full font-bold text-[13px] hover:bg-gray-100 transition-colors shrink-0"
-        >
-          <Download size={16} strokeWidth={2.5} />
-          Download as PDF
-        </button>
+        <div className="flex items-center gap-3 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 shrink-0 hide-scrollbar">
+          <button 
+            onClick={openSendModal}
+            className="flex items-center justify-center gap-2 bg-[#FF7950] text-white h-[40px] px-5 rounded-full font-bold text-[13px] hover:bg-[#E66A45] transition-colors shrink-0 shadow-[0_8px_20px_rgba(255,121,80,0.25)]"
+          >
+            <Send size={16} strokeWidth={2.5} />
+            Send to Group
+          </button>
+          <button 
+            onClick={handlePrint}
+            className="flex items-center justify-center gap-2 bg-white text-[#18181B] h-[40px] px-5 rounded-full font-bold text-[13px] hover:bg-gray-100 transition-colors shrink-0"
+          >
+            <Download size={16} strokeWidth={2.5} />
+            Download PDF
+          </button>
+        </div>
       </div>
 
       {/* The Document — pixel-perfect A4 style */}
       <div className="document-container w-full max-w-[794px] mx-auto bg-[#D6DCE4] shadow-lg font-serif text-black print:shadow-none print:max-w-full print:bg-[#D6DCE4]">
         
         {/* School Header Banner */}
-        <div className="relative bg-[#D6DCE4] px-[50px] pt-[30px] pb-[20px]">
+        <div className="relative bg-[#D6DCE4] px-6 md:px-[50px] pt-6 md:pt-[30px] pb-[20px]">
           {/* Teacher badge */}
           <div className="absolute top-[12px] left-[12px] bg-[#5B4A9E] text-white text-[11px] font-bold px-3 py-1.5 rounded-md shadow-md z-10">
             VedaAI Generated
           </div>
           
           <div className="text-center pt-[20px]">
-            <h1 className="text-[24px] font-bold leading-tight" style={{ fontFamily: 'Georgia, serif' }}>
+            <h1 className="text-[20px] md:text-[24px] font-bold leading-tight" style={{ fontFamily: 'Georgia, serif' }}>
               {paper.header.schoolName}
             </h1>
-            <h2 className="text-[17px] font-bold mt-1">Subject: {paper.header.subject}</h2>
-            <h3 className="text-[16px] font-bold">Class: {paper.header.class}</h3>
+            <h2 className="text-[16px] md:text-[17px] font-bold mt-1">Subject: {paper.header.subject}</h2>
+            <h3 className="text-[15px] md:text-[16px] font-bold">Class: {paper.header.class}</h3>
           </div>
         </div>
 
         {/* Document Body */}
-        <div className="bg-white mx-0 px-[50px] py-[30px]">
+        <div className="bg-white mx-0 px-6 md:px-[50px] py-[30px]">
           
           {/* Time & Marks */}
           <div className="flex justify-between items-center text-[14px] font-bold mb-5">
@@ -140,6 +213,75 @@ export function AssignmentOutput({ onBack, paper }: AssignmentOutputProps) {
           )}
         </div>
       </div>
+
+      {/* Send to Group Modal */}
+      {showSendModal && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4 print:hidden">
+          <div className="bg-white rounded-[32px] w-full max-w-[400px] shadow-2xl overflow-hidden flex flex-col">
+            <div className="flex justify-between items-center p-6 border-b border-gray-100">
+              <h3 className="font-bold text-[18px] font-[family-name:var(--font-bricolage)] text-gray-900">Send Assignment</h3>
+              <button onClick={() => setShowSendModal(false)} className="text-gray-400 hover:text-gray-900 p-2 rounded-full hover:bg-gray-100 transition-colors">
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div className="p-6">
+              {loadingGroups ? (
+                <div className="flex justify-center py-8">
+                  <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+                </div>
+              ) : groups.length === 0 ? (
+                <div className="text-center py-6">
+                  <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 text-gray-400">
+                    <Users size={20} />
+                  </div>
+                  <p className="text-sm text-gray-600">You don&apos;t have any groups yet. Create one in the My Groups tab to send assignments.</p>
+                </div>
+              ) : (
+                <div>
+                  <label className="text-sm font-medium text-gray-700 block mb-3">Select a group to send to:</label>
+                  <div className="space-y-2 max-h-[200px] overflow-y-auto pr-2 custom-scrollbar">
+                    {groups.map(group => {
+                      const emails = JSON.parse(group.emails || "[]");
+                      return (
+                        <div 
+                          key={group.id} 
+                          onClick={() => setSelectedGroupId(group.id)}
+                          className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-colors ${selectedGroupId === group.id ? 'border-orange-500 bg-orange-50' : 'border-gray-200 hover:border-gray-300 bg-white'}`}
+                        >
+                          <div>
+                            <p className="font-bold text-sm text-gray-900">{group.name}</p>
+                            <p className="text-xs text-gray-500 mt-0.5">{emails.length} Students</p>
+                          </div>
+                          <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${selectedGroupId === group.id ? 'border-orange-500 bg-orange-500' : 'border-gray-300'}`}>
+                            {selectedGroupId === group.id && <div className="w-2 h-2 bg-white rounded-full"></div>}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="p-6 border-t border-gray-100 flex justify-end gap-3 bg-gray-50">
+              <button 
+                onClick={() => setShowSendModal(false)}
+                className="px-5 py-2.5 rounded-full text-sm font-medium text-gray-600 hover:bg-gray-200 transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleSend}
+                disabled={isSending || groups.length === 0 || !selectedGroupId}
+                className="flex items-center justify-center min-w-[100px] px-5 py-2.5 bg-[#FF7950] text-white rounded-full text-sm font-medium hover:bg-[#E66A45] transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_8px_20px_rgba(255,121,80,0.25)]"
+              >
+                {isSending ? <Loader2 size={16} className="animate-spin" /> : "Send"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,17 +1,51 @@
-import express from 'express';
+import 'dotenv/config';
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
+import dotenv from 'dotenv';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import { PrismaClient } from '@prisma/client';
+import * as admin from 'firebase-admin';
+import jwt from 'jsonwebtoken';
+import { requireAuth, AuthRequest } from './middleware/authMiddleware';
+import { parseDocument, generateQuestionPaper } from './services/llmService';
+import authRoutes from './routes/authRoutes';
+import { groupRouter } from './routes/groupRoute';
+import { sendAssignmentEmails } from './services/emailService';
+
+dotenv.config();
 
 const app = express();
-const prisma = new PrismaClient();
+export const prisma = new PrismaClient();
 const PORT = process.env.PORT || 4000;
+const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_key_for_dev';
+
+try {
+  if (!admin.apps.length) {
+    const serviceAccountPath = path.resolve(__dirname, '../firebase-service-account.json');
+    if (fs.existsSync(serviceAccountPath)) {
+      const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf-8'));
+      admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount),
+      });
+    } else {
+      console.warn("firebase-service-account.json not found. Google Auth will fail.");
+    }
+  }
+} catch (e) {
+  console.log("Firebase admin initialization warning:", e);
+}
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  credentials: true
+}));
 app.use(express.json());
+
+// Mount Auth Routes
+app.use('/api/auth', authRoutes);
 
 // Setup Multer for file uploads
 const uploadDir = path.join(__dirname, '../uploads');
@@ -51,92 +85,190 @@ app.post('/api/upload', upload.single('file'), (req, res) => {
   });
 });
 
-import { parseDocument, generateQuestionPaper } from './services/llmService';
 
-// 2. Handle Generation Request
-app.post('/api/generate', async (req, res) => {
-  const { file, dueDate, questionTypes, totalQuestions, totalMarks, additionalInfo } = req.body;
-  
-  console.log('\n--- Received Generation Request ---');
-  console.log(`Due Date: ${dueDate}`);
-  console.log(`Total Questions: ${totalQuestions} | Total Marks: ${totalMarks}`);
-  if (file) console.log(`Attached File: ${file}`);
-  console.log('-----------------------------------\n');
 
+
+// Create assignment and upload document
+app.post('/api/generate', requireAuth, upload.single('document'), async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    let contextText = "No context provided. Generate a generic assignment based on the instructions.";
-    
-    // Find the uploaded file physically
-    if (file) {
-      const allUploads = fs.readdirSync(uploadDir);
-      const matchedFile = allUploads.find(f => f.endsWith(file));
-      if (matchedFile) {
-        const filePath = path.join(uploadDir, matchedFile);
-        const mimeType = matchedFile.endsWith('.pdf') ? 'application/pdf' : 'image/png';
-        contextText = await parseDocument(filePath, mimeType);
-        console.log(`Successfully extracted ${contextText.length} characters of context.`);
-      }
+    const { title, dueDate, totalMarks, totalQuestions, additionalInfo, questionTypes } = req.body;
+    const file = req.file;
+
+    if (!file) {
+      res.status(400).json({ error: 'Document is required' });
+      return;
     }
 
-    // Call Groq LLM
-    const generatedPaperJson = await generateQuestionPaper(contextText, {
+    const parsedQuestionTypes = JSON.parse(questionTypes);
+    const parsedTotalMarks = parseInt(totalMarks);
+    const parsedTotalQuestions = parseInt(totalQuestions);
+
+    // Save document to DB (skip if guest)
+    let documentId = null;
+    if (!req.isGuest && req.user) {
+      const document = await prisma.document.create({
+        data: {
+          filename: file.originalname,
+          filepath: file.path,
+          mimeType: file.mimetype,
+          size: file.size,
+          userId: req.user.userId
+        }
+      });
+      documentId = document.id;
+    }
+
+    // Process document text
+    const contextText = await parseDocument(file.path, file.mimetype);
+
+    // Create an initial draft assignment (skip if guest)
+    let assignment = null;
+    if (!req.isGuest && req.user) {
+      assignment = await prisma.assignment.create({
+        data: {
+          title,
+          dueDate,
+          totalMarks: parsedTotalMarks,
+          status: 'GENERATING',
+          userId: req.user.userId
+        }
+      });
+    }
+
+    // Generate questions using LLM
+    const paperJson = await generateQuestionPaper(contextText, {
       dueDate,
-      totalQuestions,
-      totalMarks,
+      totalQuestions: parsedTotalQuestions,
+      totalMarks: parsedTotalMarks,
       additionalInfo,
-      questionTypes
+      questionTypes: parsedQuestionTypes
     });
 
-    // Save to DB (include the full paper JSON)
-    const savedAssignment = await prisma.assignment.create({
-      data: {
-        title: generatedPaperJson.header?.subject 
-          ? generatedPaperJson.header.subject + " Assignment"
-          : "Generated Assignment",
-        dueDate: dueDate || "Pending",
-        totalMarks: totalMarks,
-        status: "GENERATED",
-        paperJson: JSON.stringify(generatedPaperJson)
-      }
-    });
+    // Update assignment with generated JSON
+    if (!req.isGuest && assignment) {
+      assignment = await prisma.assignment.update({
+        where: { id: assignment.id },
+        data: {
+          status: 'COMPLETED',
+          paperJson: JSON.stringify(paperJson)
+        }
+      });
+    } else {
+      // If guest, create a virtual assignment object to return
+      assignment = {
+        id: 'guest-' + Date.now(),
+        title,
+        dueDate,
+        totalMarks: parsedTotalMarks,
+        status: 'COMPLETED',
+        paperJson: JSON.stringify(paperJson)
+      };
+    }
 
-    res.json({ 
-      message: 'Generation complete',
-      assignment: savedAssignment,
-      paper: generatedPaperJson
-    });
-
-  } catch (error: any) {
-    console.error("Generation error:", error?.message || error);
+    res.json(assignment);
+  } catch (error) {
+    console.error('Generation Error:', error);
     res.status(500).json({ error: 'Failed to generate assignment' });
   }
 });
 
-// 3. List all Assignments
-app.get('/api/assignments', async (req, res) => {
+// Get all assignments
+app.get('/api/assignments', requireAuth, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
+    if (req.isGuest) {
+      res.json([]);
+      return;
+    }
+
     const assignments = await prisma.assignment.findMany({
+      where: { userId: req.user?.userId },
       orderBy: { createdAt: 'desc' }
     });
     res.json(assignments);
-  } catch (error: any) {
-    console.error("List error:", error?.message || error);
+  } catch (error) {
+    console.error('Error fetching assignments:', error);
     res.status(500).json({ error: 'Failed to fetch assignments' });
   }
 });
 
-// 4. Delete an Assignment
-app.delete('/api/assignments/:id', async (req, res) => {
+// Delete an assignment
+app.delete('/api/assignments/:id', requireAuth, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    await prisma.assignment.delete({ where: { id: req.params.id } });
-    res.json({ message: 'Assignment deleted' });
-  } catch (error: any) {
-    console.error("Delete error:", error?.message || error);
+    if (req.isGuest) {
+      res.status(403).json({ error: 'Guests cannot delete' });
+      return;
+    }
+
+    const id = req.params.id as string;
+    
+    const assignment = await prisma.assignment.findUnique({ where: { id } });
+    if (!assignment || assignment.userId !== req.user?.userId) {
+      res.status(404).json({ error: 'Assignment not found or unauthorized' });
+      return;
+    }
+
+    await prisma.assignment.delete({
+      where: { id }
+    });
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting assignment:', error);
     res.status(500).json({ error: 'Failed to delete assignment' });
   }
 });
 
-// Start Server
+app.use('/api/groups', groupRouter);
+
+// Send an assignment to a group
+app.post('/api/assignments/:id/send', requireAuth, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    if (req.isGuest) {
+      res.status(403).json({ error: 'Guests cannot send assignments' });
+      return;
+    }
+
+    const assignmentId = req.params.id as string;
+    const { groupId } = req.body;
+
+    if (!groupId) {
+      res.status(400).json({ error: 'Group ID is required' });
+      return;
+    }
+
+    const assignment = await prisma.assignment.findUnique({ where: { id: assignmentId } });
+    if (!assignment || assignment.userId !== req.user?.userId) {
+      res.status(404).json({ error: 'Assignment not found or unauthorized' });
+      return;
+    }
+
+    const group = await prisma.group.findUnique({ where: { id: groupId } });
+    if (!group || group.userId !== req.user?.userId) {
+      res.status(404).json({ error: 'Group not found or unauthorized' });
+      return;
+    }
+
+    // In a production app, we'd generate a PDF here, but for now we'll simulate sending
+    // an email with a mock PDF buffer or a text format of the JSON.
+    const emails = JSON.parse(group.emails);
+    
+    // Create a mock buffer (in real app: convert assignment.paperJson to PDF buffer)
+    const mockPdfBuffer = Buffer.from("Mock PDF Content - " + assignment.title);
+
+    await sendAssignmentEmails(
+      emails,
+      group.name,
+      assignment.title,
+      (req.user as any)?.name || "Teacher",
+      mockPdfBuffer
+    );
+
+    res.json({ success: true, message: `Sent to ${emails.length} students` });
+  } catch (error) {
+    console.error('Error sending assignment:', error);
+    res.status(500).json({ error: 'Failed to send assignment' });
+  }
+});
 app.listen(PORT, () => {
-  console.log(`\n🚀 Backend Server running on http://localhost:${PORT}`);
+  console.log(`Backend server running on http://localhost:${PORT}`);
 });

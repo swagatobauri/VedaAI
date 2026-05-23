@@ -46,3 +46,27 @@ body {
     box-shadow: none !important;
   }
 }
+
+@layer utilities {
+  .preserve-3d {
+    transform-style: preserve-3d;
+  }
+  
+  .transform-style-3d {
+    transform-style: preserve-3d;
+  }
+  
+  .translate-z-\[20px\] {
+    transform: translateZ(20px);
+  }
+  
+  .translate-z-\[40px\] {
+    transform: translateZ(40px);
+  }
+}
+
+@keyframes scan {
+  0% { transform: translateY(-100%); }
+  50% { transform: translateY(150%); }
+  100% { transform: translateY(-100%); }
+}

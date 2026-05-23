@@ -34,12 +34,15 @@ export async function generateQuestionPaper(
     questionTypes: any[];
   }
 ) {
+  // Truncate context to avoid token limits slowing down TTFT (approx 3500 tokens)
+  const truncatedContext = contextText.substring(0, 15000);
+
   const prompt = `
 You are an expert Teacher and AI Assistant named VedaAI. Your task is to generate a highly professional question paper based on the provided document context.
 
 DOCUMENT CONTEXT:
 """
-${contextText}
+${truncatedContext}
 """
 
 REQUIREMENTS:
@@ -49,6 +52,8 @@ REQUIREMENTS:
 - Additional Instructions: ${params.additionalInfo || 'None'}
 - Question Breakdown:
 ${params.questionTypes.map((q: any) => `  - ${q.questions}x ${q.type} (${q.marks} marks each)`).join('\n')}
+- IMPORTANT: You MUST generate the exact number of questions requested.
+- IMPORTANT: You MUST provide an answer in the "answerKey" array for EVERY SINGLE question generated across all sections. Do not skip any answers.
 
 OUTPUT FORMAT:
 You MUST respond with a raw, valid JSON object containing exactly the following structure. Do NOT wrap it in markdown code blocks.
@@ -84,16 +89,17 @@ You MUST respond with a raw, valid JSON object containing exactly the following 
 }
 `;
 
-  console.log("Calling Groq LLM with prompt...");
+  console.log("Calling Groq LLM with prompt (length:", prompt.length, ")...");
   
   try {
     const response = await groq.chat.completions.create({
       messages: [
-        { role: 'system', content: 'You are a helpful teaching assistant that only outputs valid JSON.' },
+        { role: 'system', content: 'You are a helpful teaching assistant that only outputs valid JSON. Always complete the entire generation without cutting off.' },
         { role: 'user', content: prompt }
       ],
       model: 'llama-3.3-70b-versatile',
       temperature: 0.2,
+      max_tokens: 4000,
       response_format: { type: "json_object" }
     });
 

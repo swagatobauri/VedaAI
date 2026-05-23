@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowLeft, ArrowRight, Calendar, CloudUpload, Mic, Minus, Plus, X, ChevronDown, FileText } from "lucide-react";
-
+import Cookies from "js-cookie";
+import { ArrowLeft, ArrowRight, Calendar, CloudUpload, Mic, Minus, Plus, X, ChevronDown, FileText, Loader2, FileSearch, BrainCircuit, CheckCircle2 } from "lucide-react";
+import { useEffect } from "react";
 interface QuestionTypeRow {
   id: string;
   type: string;
@@ -19,7 +20,7 @@ const QUESTION_TYPE_OPTIONS = [
 ];
 
 interface CreateAssignmentProps {
-  onGenerateSuccess?: (paperPayload: any) => void;
+  onGenerateSuccess?: (assignment: any, paper: any) => void;
 }
 
 export function CreateAssignment({ onGenerateSuccess }: CreateAssignmentProps) {
@@ -64,55 +65,54 @@ export function CreateAssignment({ onGenerateSuccess }: CreateAssignmentProps) {
   };
 
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generationStep, setGenerationStep] = useState(0);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isGenerating) {
+      interval = setInterval(() => {
+        setGenerationStep((prev) => (prev < 3 ? prev + 1 : prev));
+      }, 3500); // Progress steps roughly every 3.5 seconds
+    } else {
+      setGenerationStep(0);
+    }
+    return () => clearInterval(interval);
+  }, [isGenerating]);
 
   const handleNext = async () => {
     try {
-      setIsGenerating(true);
-      let uploadedFilename = null;
-
-      // 1. Upload File if present
-      if (selectedFile) {
-        const formData = new FormData();
-        formData.append("file", selectedFile);
-        
-        console.log("Uploading file to backend...");
-        const uploadRes = await fetch("http://localhost:4000/api/upload", {
-          method: "POST",
-          body: formData,
-        });
-        
-        if (uploadRes.ok) {
-          const uploadData = await uploadRes.json();
-          uploadedFilename = uploadData.filename;
-          console.log("File uploaded successfully:", uploadedFilename);
-        } else {
-          console.error("File upload failed");
-        }
+      if (!selectedFile) {
+        alert("Please upload a document first.");
+        return;
       }
+      setIsGenerating(true);
 
-      // 2. Submit form data
-      const payload = {
-        file: uploadedFilename || null,
-        dueDate,
-        questionTypes,
-        totalQuestions,
-        totalMarks,
-        additionalInfo
-      };
+      const formData = new FormData();
+      const documentTitle = selectedFile ? selectedFile.name.replace(/\.[^/.]+$/, "") : "Untitled Assignment";
+      formData.append('document', selectedFile);
+      formData.append('title', documentTitle);
+      formData.append('dueDate', dueDate);
+      formData.append('totalQuestions', String(totalQuestions));
+      formData.append('totalMarks', String(totalMarks));
+      formData.append('additionalInfo', additionalInfo);
+      formData.append('questionTypes', JSON.stringify(questionTypes));
 
-      console.log("Sending generation request with payload:", payload);
-      
-      const generateRes = await fetch("http://localhost:4000/api/generate", {
+      const token = Cookies.get("token");
+      const isGuest = Cookies.get("isGuest");
+      const authHeader = token ? `Bearer ${token}` : isGuest === "true" ? "Guest" : "";
+
+      const generateRes = await fetch("/api/generate", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        headers: { Authorization: authHeader },
+        body: formData
       });
 
       if (generateRes.ok) {
         const result = await generateRes.json();
         console.log("Backend response:", result);
         if (onGenerateSuccess) {
-          onGenerateSuccess(result.paper);
+          const paper = JSON.parse(result.paperJson);
+          onGenerateSuccess(result, paper);
         }
       } else {
         const errorText = await generateRes.text();
@@ -127,6 +127,65 @@ export function CreateAssignment({ onGenerateSuccess }: CreateAssignmentProps) {
       setIsGenerating(false);
     }
   };
+
+  if (isGenerating) {
+    const steps = [
+      { icon: <CloudUpload size={24} className="text-orange-500" />, title: "Uploading Document", desc: "Securely transferring your file to the server." },
+      { icon: <FileSearch size={24} className="text-blue-500" />, title: "Extracting Content", desc: "Reading and understanding the text using OCR and parsers." },
+      { icon: <BrainCircuit size={24} className="text-purple-500" />, title: "AI is Crafting Questions", desc: "VedaAI is analyzing the context to generate high-quality questions." },
+      { icon: <CheckCircle2 size={24} className="text-green-500" />, title: "Formatting Paper", desc: "Structuring your customized question paper perfectly." }
+    ];
+
+    return (
+      <div className="w-full max-w-[900px] mx-auto min-h-[500px] flex flex-col items-center justify-center pt-20 px-4">
+        <div className="bg-white rounded-[32px] p-10 shadow-xl w-full max-w-[600px] flex flex-col items-center relative overflow-hidden">
+          {/* Decorative background glow */}
+          <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-orange-400 via-blue-500 to-purple-500"></div>
+          
+          <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-6 shadow-inner relative">
+            <Loader2 size={36} className="text-orange-500 animate-spin absolute" />
+            <BrainCircuit size={20} className="text-gray-900" />
+          </div>
+          
+          <h2 className="text-[24px] font-bold text-gray-900 font-[family-name:var(--font-bricolage)] mb-2 text-center">
+            Creating Your Assignment
+          </h2>
+          <p className="text-[14px] text-gray-500 mb-10 text-center max-w-[400px]">
+            Please wait while VedaAI analyzes your document and generates a highly professional question paper. This may take up to 30 seconds.
+          </p>
+
+          <div className="w-full space-y-4">
+            {steps.map((step, index) => {
+              const isActive = index === generationStep;
+              const isPast = index < generationStep;
+              
+              return (
+                <div 
+                  key={index} 
+                  className={`flex items-center gap-4 p-4 rounded-2xl transition-all duration-500 ${isActive ? 'bg-gray-50 border border-gray-100 scale-100 opacity-100 shadow-sm' : isPast ? 'opacity-60 scale-95 grayscale' : 'opacity-30 scale-95 grayscale'}`}
+                >
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 ${isActive ? 'bg-white shadow-sm' : 'bg-gray-100'}`}>
+                    {isPast ? <CheckCircle2 size={24} className="text-green-500" /> : step.icon}
+                  </div>
+                  <div>
+                    <h4 className={`font-bold text-[15px] ${isActive ? 'text-gray-900' : 'text-gray-600'}`}>{step.title}</h4>
+                    <p className="text-[12px] text-gray-500 mt-0.5">{step.desc}</p>
+                  </div>
+                  {isActive && (
+                    <div className="ml-auto flex gap-1">
+                      <div className="w-1.5 h-1.5 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                      <div className="w-1.5 h-1.5 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                      <div className="w-1.5 h-1.5 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-[1100px] mx-auto min-h-[500px] pb-[140px] px-4 md:px-0 pt-6">
@@ -147,7 +206,7 @@ export function CreateAssignment({ onGenerateSuccess }: CreateAssignmentProps) {
       </div>
 
       {/* Main Form Card */}
-      <div className="bg-white rounded-[24px] p-8 shadow-sm mt-8 w-full max-w-[900px] mx-auto">
+      <div className="bg-white rounded-[24px] p-5 md:p-8 shadow-sm mt-8 w-full max-w-[900px] mx-auto">
         
         <h3 className="text-[18px] font-bold text-gray-900 font-[family-name:var(--font-bricolage)]">Assignment Details</h3>
         <p className="text-[13px] text-gray-400 font-medium mt-1">Basic information about your assignment</p>

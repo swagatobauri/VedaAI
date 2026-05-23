@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { ArrowLeft, Filter, Search, Plus, MoreVertical } from "lucide-react";
+import Cookies from "js-cookie";
+import { EmptyState } from "./EmptyState";
 
 interface Assignment {
   id: string;
@@ -15,7 +17,7 @@ interface Assignment {
 
 interface AssignmentListProps {
   onCreateClick?: () => void;
-  onViewAssignment?: (paper: any) => void;
+  onViewAssignment?: (assignmentId: string, paper: any) => void;
 }
 
 export function AssignmentList({ onCreateClick, onViewAssignment }: AssignmentListProps) {
@@ -30,9 +32,15 @@ export function AssignmentList({ onCreateClick, onViewAssignment }: AssignmentLi
 
   const fetchAssignments = async () => {
     try {
-      const res = await fetch("http://localhost:4000/api/assignments");
-      if (res.ok) {
-        const data = await res.json();
+      const token = Cookies.get("token");
+      const isGuest = Cookies.get("isGuest");
+      const authHeader = token ? `Bearer ${token}` : isGuest ? "Guest" : "";
+
+      const response = await fetch("/api/assignments", {
+        headers: { Authorization: authHeader }
+      });
+      if (response.ok) {
+        const data = await response.json();
         setAssignments(data);
       }
     } catch (err) {
@@ -45,8 +53,17 @@ export function AssignmentList({ onCreateClick, onViewAssignment }: AssignmentLi
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this assignment?")) return;
     try {
-      const res = await fetch(`http://localhost:4000/api/assignments/${id}`, {
+      const token = Cookies.get("token");
+      const isGuest = Cookies.get("isGuest");
+      if (isGuest === "true") {
+        alert("Guests cannot delete assignments.");
+        return;
+      }
+      
+      const authHeader = token ? `Bearer ${token}` : "";
+      const res = await fetch(`/api/assignments/${id}`, {
         method: "DELETE",
+        headers: { Authorization: authHeader }
       });
       if (res.ok) {
         setAssignments(prev => prev.filter(a => a.id !== id));
@@ -65,7 +82,7 @@ export function AssignmentList({ onCreateClick, onViewAssignment }: AssignmentLi
     }
     if (onViewAssignment) {
       const paper = JSON.parse(assignment.paperJson);
-      onViewAssignment(paper);
+      onViewAssignment(assignment.id, paper);
     }
   };
 
@@ -101,9 +118,11 @@ export function AssignmentList({ onCreateClick, onViewAssignment }: AssignmentLi
 
       {/* Desktop Title Area */}
       <div className="hidden md:flex flex-row items-center w-full h-[50px] px-[8px] gap-[16px] mb-6">
-        <div className="flex items-center justify-center w-8 h-8 bg-green-50 rounded-lg">
-          <div className="w-3 h-3 rounded-full bg-green-500"></div>
-        </div>
+        {assignments.length > 0 && (
+          <div className="flex items-center justify-center w-8 h-8 bg-green-50 rounded-lg">
+            <div className="w-3 h-3 rounded-full bg-green-500"></div>
+          </div>
+        )}
         <div className="flex flex-col justify-center">
           <h2 
             className="text-gray-900 font-[family-name:var(--font-bricolage)] text-left align-middle"
@@ -161,13 +180,7 @@ export function AssignmentList({ onCreateClick, onViewAssignment }: AssignmentLi
 
       {/* Empty State */}
       {!loading && assignments.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-            <Search size={24} className="text-gray-300" />
-          </div>
-          <p className="text-gray-400 text-sm font-medium">No assignments yet.</p>
-          <p className="text-gray-300 text-xs mt-1">Click "Create Assignment" to get started.</p>
-        </div>
+        <EmptyState onCreateClick={onCreateClick} />
       )}
 
       {/* Assignment Cards Grid */}
@@ -226,15 +239,17 @@ export function AssignmentList({ onCreateClick, onViewAssignment }: AssignmentLi
       )}
 
       {/* Floating Create Assignment Button Area (Desktop) */}
-      <div className="hidden md:flex fixed bottom-0 left-0 right-0 pl-[328px] h-[160px] pointer-events-none items-end justify-center pb-[40px] bg-gradient-to-t from-[#EDEDED] via-[#EDEDED]/80 to-transparent z-20">
-        <button 
-          onClick={onCreateClick}
-          className="pointer-events-auto flex items-center justify-center gap-2 bg-[#18181B] text-white h-[46px] px-6 rounded-full transition-colors text-sm font-medium shadow-xl hover:bg-black border-[1.5px] border-white/10"
-        >
-          <Plus size={18} />
-          Create Assignment
-        </button>
-      </div>
+      {!loading && assignments.length > 0 && (
+        <div className="hidden md:flex fixed bottom-0 left-0 right-0 pl-[328px] h-[160px] pointer-events-none items-end justify-center pb-[40px] bg-gradient-to-t from-[#EDEDED] via-[#EDEDED]/80 to-transparent z-20">
+          <button 
+            onClick={onCreateClick}
+            className="pointer-events-auto flex items-center justify-center gap-2 bg-[#18181B] text-white h-[46px] px-6 rounded-full transition-colors text-sm font-medium shadow-xl hover:bg-black border-[1.5px] border-white/10"
+          >
+            <Plus size={18} />
+            Create Assignment
+          </button>
+        </div>
+      )}
 
     </div>
   );

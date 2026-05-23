@@ -6,8 +6,22 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id           String       @id @default(uuid())
+  email        String       @unique
+  name         String?
+  passwordHash String?
+  authProvider String       @default("LOCAL") // "LOCAL" or "GOOGLE"
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  assignments  Assignment[]
+  documents    Document[]
+  groups       Group[]
 }
 
 model Assignment {
@@ -19,6 +33,8 @@ model Assignment {
   paperJson   String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id])
 }
 
 model Document {
@@ -28,4 +44,16 @@ model Document {
   mimeType    String?
   size        Int?
   createdAt   DateTime @default(now())
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id])
+}
+
+model Group {
+  id          String   @id @default(uuid())
+  name        String
+  emails      String   // Stored as JSON string array
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
 }
