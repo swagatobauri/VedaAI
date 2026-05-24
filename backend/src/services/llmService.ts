@@ -14,6 +14,9 @@ export async function parseDocument(filePath: string, mimeType: string): Promise
   if (mimeType === 'application/pdf') {
     const dataBuffer = fs.readFileSync(filePath);
     const data = await pdfParse(dataBuffer);
+    if (!data.text || data.text.trim() === '') {
+      throw new Error("Could not extract any text from the PDF. If this is a scanned document, please ensure it contains highlightable text.");
+    }
     return data.text;
   } else if (mimeType.startsWith('image/')) {
     const { data: { text } } = await Tesseract.recognize(filePath, 'eng');
@@ -107,7 +110,9 @@ You MUST respond with a raw, valid JSON object containing exactly the following 
     });
 
     const content = response.choices[0]?.message?.content || '{}';
-    return JSON.parse(content);
+    // Robustly strip any markdown code blocks that the LLM might have outputted
+    const cleanContent = content.replace(/```json/gi, '').replace(/```/g, '').trim();
+    return JSON.parse(cleanContent);
   } catch (error) {
     console.error("Groq API Error:", error);
     throw error;
