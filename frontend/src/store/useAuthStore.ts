@@ -35,7 +35,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     } else if (token) {
       try {
         const res = await fetch("/api/auth/me", {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            'X-Veda-Auth': `Bearer ${token}`
+          },
         });
         const data = await res.json();
         if (data.user) {

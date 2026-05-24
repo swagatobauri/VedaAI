@@ -35,7 +35,10 @@ export function Sidebar({ onCreateClick }: SidebarProps) {
         if (!authHeader) return;
 
         const res = await fetch("/api/assignments", {
-          headers: { Authorization: authHeader }
+          headers: { 
+            Authorization: authHeader,
+            'X-Veda-Auth': authHeader
+          }
         });
         if (res.ok) {
           const data = await res.json();

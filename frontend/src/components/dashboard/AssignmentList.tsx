@@ -37,7 +37,10 @@ export function AssignmentList({ onCreateClick, onViewAssignment }: AssignmentLi
       const authHeader = token ? `Bearer ${token}` : isGuest ? "Guest" : "";
 
       const response = await fetch("/api/assignments", {
-        headers: { Authorization: authHeader }
+        headers: { 
+          Authorization: authHeader,
+          'X-Veda-Auth': authHeader
+        }
       });
       if (response.ok) {
         const data = await response.json();
@@ -63,7 +66,10 @@ export function AssignmentList({ onCreateClick, onViewAssignment }: AssignmentLi
       const authHeader = token ? `Bearer ${token}` : "";
       const res = await fetch(`/api/assignments/${id}`, {
         method: "DELETE",
-        headers: { Authorization: authHeader }
+        headers: { 
+          Authorization: authHeader,
+          'X-Veda-Auth': authHeader
+        }
       });
       if (res.ok) {
         setAssignments(prev => prev.filter(a => a.id !== id));

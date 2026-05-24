@@ -108,7 +108,10 @@ export function CreateAssignment({ onGenerateSuccess }: CreateAssignmentProps) {
 
       const generateRes = await fetch("/api/generate", {
         method: "POST",
-        headers: { Authorization: authHeader },
+        headers: { 
+          Authorization: authHeader,
+          'X-Veda-Auth': authHeader
+        },
         body: formData
       });
 

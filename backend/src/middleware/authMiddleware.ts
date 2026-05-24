@@ -6,7 +6,9 @@ export interface AuthRequest extends Request {
 }
 
 export const requireAuth = (req: AuthRequest, res: Response, next: NextFunction): void => {
-  const authHeader = req.headers.authorization;
+  console.log("=== Incoming Request to", req.path, "===");
+  console.log("Headers:", req.headers);
+  const authHeader = (req.headers.authorization || req.headers['x-veda-auth']) as string;
   
   if (authHeader && authHeader.startsWith('Guest')) {
     req.isGuest = true;
