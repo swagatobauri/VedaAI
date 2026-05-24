@@ -8,6 +8,9 @@ const connection = new IORedis(redisUrl, {
   maxRetriesPerRequest: null,
 });
 
-export const assignmentQueue = new Queue('assignment-generation', {
+const queuePrefix = process.env.NODE_ENV === 'production' ? 'production' : 'development';
+export const QUEUE_NAME = `${queuePrefix}:assignment-generation`;
+
+export const assignmentQueue = new Queue(QUEUE_NAME, {
   connection
 });

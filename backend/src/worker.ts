@@ -2,15 +2,16 @@ import { Worker, Job } from 'bullmq';
 import IORedis from 'ioredis';
 import { PrismaClient } from '@prisma/client';
 import { parseDocument, generateQuestionPaper } from './services/llmService';
+import { QUEUE_NAME } from './services/queue';
 
 const prisma = new PrismaClient();
 const redisUrl = process.env.REDIS_URL || 'redis://127.0.0.1:6379';
 const connection = new IORedis(redisUrl, { maxRetriesPerRequest: null });
 
 export function startWorker(io: any) {
-  console.log("Starting BullMQ Worker for assignment-generation");
+  console.log(`Starting BullMQ Worker for ${QUEUE_NAME}`);
 
-  const worker = new Worker('assignment-generation', async (job: Job) => {
+  const worker = new Worker(QUEUE_NAME, async (job: Job) => {
     const {
       assignmentId,
       filePath,
