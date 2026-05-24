@@ -16,6 +16,9 @@ export function startWorker(io: any) {
       filePath,
       mimeType,
       dueDate,
+      subject,
+      classLevel,
+      schoolName,
       totalQuestions,
       totalMarks,
       additionalInfo,
@@ -30,6 +33,9 @@ export function startWorker(io: any) {
       // 2. Generate questions using LLM
       const paperJson = await generateQuestionPaper(contextText, {
         dueDate,
+        subject,
+        classLevel,
+        schoolName,
         totalQuestions,
         totalMarks,
         additionalInfo,

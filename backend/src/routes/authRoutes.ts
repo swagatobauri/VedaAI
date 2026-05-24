@@ -135,9 +135,34 @@ router.get('/me', async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    res.json({ user: { id: user.id, email: user.email, name: user.name } });
+    res.json({ user: { id: user.id, email: user.email, name: user.name, schoolName: user.schoolName } });
   } catch (error) {
     res.status(401).json({ error: 'Invalid token' });
+  }
+});
+
+// Update user profile
+router.put('/profile', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+
+    const token = authHeader.split(' ')[1];
+    const decoded = jwt.verify(token, JWT_SECRET) as { userId: string };
+
+    const { schoolName } = req.body;
+
+    const user = await prisma.user.update({
+      where: { id: decoded.userId },
+      data: { schoolName }
+    });
+
+    res.json({ user: { id: user.id, email: user.email, name: user.name, schoolName: user.schoolName } });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update profile' });
   }
 });
 

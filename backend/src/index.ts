@@ -105,7 +105,7 @@ app.post('/api/upload', upload.single('file'), (req, res) => {
 // Create assignment and upload document
 app.post('/api/generate', requireAuth, upload.single('document'), async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const { title, dueDate, totalMarks, totalQuestions, additionalInfo, questionTypes } = req.body;
+    const { title, dueDate, totalMarks, totalQuestions, additionalInfo, questionTypes, subject, classLevel } = req.body;
     const file = req.file;
 
     if (!file) {
@@ -116,6 +116,14 @@ app.post('/api/generate', requireAuth, upload.single('document'), async (req: Au
     const parsedQuestionTypes = JSON.parse(questionTypes);
     const parsedTotalMarks = parseInt(totalMarks);
     const parsedTotalQuestions = parseInt(totalQuestions);
+
+    let userSchoolName = "Delhi Public School"; // fallback
+    if (!req.isGuest && req.user) {
+      const user = await prisma.user.findUnique({ where: { id: req.user.userId } });
+      if (user && user.schoolName) {
+        userSchoolName = user.schoolName;
+      }
+    }
 
     // Save document to DB (skip if guest)
     let documentId = null;
@@ -152,6 +160,9 @@ app.post('/api/generate', requireAuth, upload.single('document'), async (req: Au
       filePath: file.path,
       mimeType: file.mimetype,
       dueDate,
+      subject: subject || "General Subject",
+      classLevel: classLevel || "General Class",
+      schoolName: userSchoolName,
       totalQuestions: parsedTotalQuestions,
       totalMarks: parsedTotalMarks,
       additionalInfo,

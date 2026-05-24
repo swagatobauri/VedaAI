@@ -28,6 +28,9 @@ export async function generateQuestionPaper(
   contextText: string,
   params: {
     dueDate: string;
+    subject: string;
+    classLevel: string;
+    schoolName: string;
     totalQuestions: number;
     totalMarks: number;
     additionalInfo: string;
@@ -49,6 +52,9 @@ REQUIREMENTS:
 - Time Allowed: 45 minutes
 - Maximum Marks: ${params.totalMarks}
 - Total Questions: ${params.totalQuestions}
+- Subject: ${params.subject}
+- Class/Grade: ${params.classLevel}
+- School/Institution: ${params.schoolName}
 - Additional Instructions: ${params.additionalInfo || 'None'}
 - Question Breakdown:
 ${params.questionTypes.map((q: any) => `  - ${q.questions}x ${q.type} (${q.marks} marks each)`).join('\n')}
@@ -59,9 +65,9 @@ OUTPUT FORMAT:
 You MUST respond with a raw, valid JSON object containing exactly the following structure. Do NOT wrap it in markdown code blocks.
 {
   "header": {
-    "schoolName": "Delhi Public School, Sector-4, Bokaro",
-    "subject": "English",
-    "class": "5th",
+    "schoolName": "${params.schoolName}",
+    "subject": "${params.subject}",
+    "class": "${params.classLevel}",
     "timeAllowed": "45 minutes",
     "maximumMarks": ${params.totalMarks}
   },
