@@ -12,6 +12,7 @@ import { useNotificationStore } from "@/store/useNotificationStore";
 export default function AssignmentsPage() {
   const [view, setView] = useState<'list' | 'create' | 'output'>('list');
   const [generatedPaper, setGeneratedPaper] = useState<any>(null);
+  const [currentAssignmentId, setCurrentAssignmentId] = useState<string | null>(null);
 
   const handleBack = () => {
     setView('list');
@@ -19,8 +20,9 @@ export default function AssignmentsPage() {
 
   const addNotification = useNotificationStore((state) => state.addNotification);
 
-  const handleGenerateSuccess = (paperPayload: any) => {
-    setGeneratedPaper(paperPayload);
+  const handleGenerateSuccess = (result: any, paper: any) => {
+    setCurrentAssignmentId(result.id);
+    setGeneratedPaper(paper);
     setView('output');
     
     addNotification({
@@ -30,7 +32,8 @@ export default function AssignmentsPage() {
     });
   };
 
-  const handleViewAssignment = (paper: any) => {
+  const handleViewAssignment = (assignmentId: string, paper: any) => {
+    setCurrentAssignmentId(assignmentId);
     setGeneratedPaper(paper);
     setView('output');
   };
@@ -48,7 +51,7 @@ export default function AssignmentsPage() {
               <CreateAssignment onGenerateSuccess={handleGenerateSuccess} />
             )}
             {view === 'output' && (
-              <AssignmentOutput onBack={handleBack} paper={generatedPaper} />
+              <AssignmentOutput onBack={handleBack} paper={generatedPaper} assignmentId={currentAssignmentId} />
             )}
             {view === 'list' && (
               <AssignmentList 
