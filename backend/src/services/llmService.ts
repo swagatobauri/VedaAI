@@ -28,7 +28,6 @@ export async function generateQuestionPaper(
   contextText: string,
   params: {
     dueDate: string;
-    subject: string;
     classLevel: string;
     schoolName: string;
     totalQuestions: number;
@@ -51,8 +50,7 @@ ${truncatedContext}
 REQUIREMENTS:
 - Time Allowed: 45 minutes
 - Maximum Marks: ${params.totalMarks}
-- Total Questions: ${params.totalQuestions}
-- Subject: ${params.subject}
+- Due Date: ${params.dueDate}
 - Class/Grade: ${params.classLevel}
 - School/Institution: ${params.schoolName}
 - Additional Instructions: ${params.additionalInfo || 'None'}
@@ -66,7 +64,6 @@ You MUST respond with a raw, valid JSON object containing exactly the following 
 {
   "header": {
     "schoolName": "${params.schoolName}",
-    "subject": "${params.subject}",
     "class": "${params.classLevel}",
     "timeAllowed": "45 minutes",
     "maximumMarks": ${params.totalMarks}

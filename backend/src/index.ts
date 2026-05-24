@@ -120,7 +120,7 @@ app.post('/api/upload', upload.single('file'), (req, res) => {
 // Create assignment and upload document
 app.post('/api/generate', requireAuth, upload.single('document'), async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const { title, dueDate, totalMarks, totalQuestions, additionalInfo, questionTypes, subject, classLevel } = req.body;
+    const { title, dueDate, totalMarks, totalQuestions, additionalInfo, questionTypes, classLevel } = req.body;
     const file = req.file;
 
     if (!file) {
@@ -175,7 +175,6 @@ app.post('/api/generate', requireAuth, upload.single('document'), async (req: Au
       filePath: file.path,
       mimeType: file.mimetype,
       dueDate,
-      subject: subject || "General Subject",
       classLevel: classLevel || "General Class",
       schoolName: userSchoolName,
       totalQuestions: parsedTotalQuestions,

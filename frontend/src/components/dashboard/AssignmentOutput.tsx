@@ -90,7 +90,7 @@ export function AssignmentOutput({ onBack, paper, assignmentId }: AssignmentOutp
       <div className="print:hidden bg-[#18181B] rounded-[24px] p-6 text-white flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
         <div className="flex-1">
           <p className="text-[14px] leading-relaxed font-medium text-gray-200">
-            Certainly! Here is your customized Question Paper for {paper.header.subject} {paper.header.class} based on your instructions.
+            Certainly! Here is your customized Question Paper for {paper.header.class} based on your instructions.
           </p>
         </div>
         <div className="flex items-center gap-3 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 shrink-0 hide-scrollbar">
@@ -125,8 +125,7 @@ export function AssignmentOutput({ onBack, paper, assignmentId }: AssignmentOutp
             <h1 className="text-[20px] md:text-[24px] font-bold leading-tight" style={{ fontFamily: 'Georgia, serif' }}>
               {paper.header.schoolName}
             </h1>
-            <h2 className="text-[16px] md:text-[17px] font-bold mt-1">Subject: {paper.header.subject}</h2>
-            <h3 className="text-[15px] md:text-[16px] font-bold">Class: {paper.header.class}</h3>
+            <h2 className="text-[16px] md:text-[17px] font-bold mt-1">Class: {paper.header.class}</h2>
           </div>
         </div>
 

@@ -26,7 +26,7 @@ interface CreateAssignmentProps {
 
 export function CreateAssignment({ onGenerateSuccess }: CreateAssignmentProps) {
   const [dueDate, setDueDate] = useState("");
-  const [subject, setSubject] = useState("");
+  const [documentTitle, setDocumentTitle] = useState("");
   const [classLevel, setClassLevel] = useState("");
   const [additionalInfo, setAdditionalInfo] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -95,7 +95,6 @@ export function CreateAssignment({ onGenerateSuccess }: CreateAssignmentProps) {
       formData.append('document', selectedFile);
       formData.append('title', documentTitle);
       formData.append('dueDate', dueDate);
-      formData.append('subject', subject);
       formData.append('classLevel', classLevel);
       formData.append('totalQuestions', String(totalQuestions));
       formData.append('totalMarks', String(totalMarks));
@@ -284,19 +283,9 @@ export function CreateAssignment({ onGenerateSuccess }: CreateAssignmentProps) {
           </div>
         </div>
 
-        {/* Subject & Class */}
-        <div className="mt-8 flex gap-4 w-full">
-          <div className="flex-1">
-            <label className="block text-[14px] font-bold text-gray-900 mb-3">Subject</label>
-            <input
-              type="text"
-              placeholder="e.g. Science, Mathematics"
-              value={subject}
-              onChange={(e) => setSubject(e.target.value)}
-              className="w-full h-[46px] px-4 border border-gray-200 rounded-[16px] text-[14px] text-gray-900 focus:outline-none focus:border-gray-300 placeholder-gray-400"
-            />
-          </div>
-          <div className="flex-1">
+        {/* Class */}
+        <div className="mt-8 w-full">
+          <div>
             <label className="block text-[14px] font-bold text-gray-900 mb-3">Class / Grade</label>
             <input
               type="text"
