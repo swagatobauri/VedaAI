@@ -17,6 +17,7 @@ import { groupRouter } from './routes/groupRoute';
 import { sendAssignmentEmails } from './services/emailService';
 import { assignmentQueue } from './services/queue';
 import { startWorker } from './worker';
+import rateLimit from 'express-rate-limit';
 
 dotenv.config();
 
@@ -73,6 +74,28 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// --- Rate Limiting Setup ---
+// Global rate limiter for all general API routes
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: { error: 'Too many requests from this IP, please try again after 15 minutes.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Strict rate limiter for AI generation to protect API credits
+const generateLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 20, // limit each IP to 20 generations per hour
+  message: { error: 'You have reached the maximum number of AI generation requests for this hour. Please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Apply the global limiter to all routes starting with /api
+app.use('/api', globalLimiter);
+
 // Mount Auth Routes
 app.use('/api/auth', authRoutes);
 
@@ -118,7 +141,7 @@ app.post('/api/upload', upload.single('file'), (req, res) => {
 
 
 // Create assignment and upload document
-app.post('/api/generate', requireAuth, upload.single('document'), async (req: AuthRequest, res: Response): Promise<void> => {
+app.post('/api/generate', requireAuth, generateLimiter, upload.single('document'), async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { title, dueDate, totalMarks, totalQuestions, additionalInfo, questionTypes, classLevel } = req.body;
     const file = req.file;
