@@ -9,7 +9,7 @@ const connection = new IORedis(redisUrl, {
 });
 
 const queuePrefix = process.env.NODE_ENV === 'production' ? 'production' : 'development';
-export const QUEUE_NAME = `${queuePrefix}:assignment-generation`;
+export const QUEUE_NAME = `${queuePrefix}-assignment-generation`;
 
 export const assignmentQueue = new Queue(QUEUE_NAME, {
   connection
