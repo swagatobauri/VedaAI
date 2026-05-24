@@ -1,7 +1,7 @@
 <div align="center">
   <img src="frontend/public/assets/banner.png" alt="VedaAI Banner" width="100%" style="border-radius: 20px"/>
   
-  # 🚀 VedaAI
+  # VedaAI
 
   **AI-Powered Assessment Creator for Educators**  
   *Upload a syllabus. Get a fully formatted question paper. Yes, it's that simple.*
@@ -19,7 +19,7 @@
 
 ---
 
-## 📑 Table of Contents
+## Table of Contents
 
 - [What is VedaAI?](#-what-is-vedaai)
 - [Features](#-features-that-will-save-your-weekend)
@@ -35,7 +35,7 @@
 
 ---
 
-## 🌟 What is VedaAI?
+## What is VedaAI?
 
 VedaAI is a full-stack **AI Assessment Creator** built for teachers who are tired of spending their Sundays writing exam papers. You upload a syllabus (PDF, image, or text), tell it what kind of questions you want, hit a button, and the AI generates a beautifully structured, printable question paper — complete with sections, difficulty tags, and an answer key.
 
@@ -43,23 +43,23 @@ But we didn't stop there. VedaAI also lets you organize students into groups and
 
 ---
 
-## ✨ Features That Will Save Your Weekend
+## Features That Will Save Your Weekend
 
 | Feature | Description |
 |---|---|
-| 🧠 **AI Question Generation** | Upload any document (PDF/image), and VedaAI parses the content using OCR and generates structured, section-wise questions with difficulty levels and marks. |
-| ⚡ **Asynchronous Processing** | Assignment generation is offloaded to a **BullMQ worker** backed by **Redis**, so the API responds instantly while the heavy AI work happens in the background. |
-| 🔌 **Real-Time WebSockets** | The frontend connects via **Socket.IO** and gets notified the *instant* the AI finishes generating — no polling, no refreshing. |
-| 🔐 **Dual Authentication** | Secure login via **Google OAuth** (Firebase) or traditional Email/Password, with custom **JWT** tokens issued by the backend. |
-| 👥 **Group Management** | Create student groups, manage email lists, and blast out assignments to an entire class with one click via **Nodemailer**. |
-| 🎨 **Premium UI/UX** | Interactive 3D login page, glassmorphism cards, step-by-step generation animations, and a polished dashboard that feels like a $10M SaaS product. |
-| 📱 **Fully Responsive** | Works beautifully on desktop, tablet, and mobile. Includes a dedicated mobile bottom navigation. |
+| **AI Question Generation** | Upload any document (PDF/image), and VedaAI parses the content using OCR and generates structured, section-wise questions with difficulty levels and marks. |
+| **Asynchronous Processing** | Assignment generation is offloaded to a **BullMQ worker** backed by **Redis**, so the API responds instantly while the heavy AI work happens in the background. |
+| **Real-Time WebSockets** | The frontend connects via **Socket.IO** and gets notified the *instant* the AI finishes generating — no polling, no refreshing. |
+| **Dual Authentication** | Secure login via **Google OAuth** (Firebase) or traditional Email/Password, with custom **JWT** tokens issued by the backend. |
+| **Group Management** | Create student groups, manage email lists, and blast out assignments to an entire class with one click via **Nodemailer**. |
+| **Premium UI/UX** | Interactive 3D login page, glassmorphism cards, step-by-step generation animations, and a polished dashboard that feels like a $10M SaaS product. |
+| **Fully Responsive** | Works beautifully on desktop, tablet, and mobile. Includes a dedicated mobile bottom navigation. |
 
 ---
 
-## 🛠️ Tech Stack
+##  Tech Stack
 
-### Frontend 🎨
+### Frontend 
 
 | Technology | Purpose |
 |---|---|
@@ -71,7 +71,7 @@ But we didn't stop there. VedaAI also lets you organize students into groups and
 | **Firebase SDK** | Google OAuth on the client side |
 | **Lucide React** | Beautiful, consistent icon library |
 
-### Backend ⚙️
+### Backend 
 
 | Technology | Purpose |
 |---|---|
@@ -90,7 +90,7 @@ But we didn't stop there. VedaAI also lets you organize students into groups and
 
 ---
 
-## 🏛 Architecture Overview
+## Architecture Overview
 
 VedaAI follows a **decoupled, event-driven architecture**. The frontend and backend are completely independent services. The backend doesn't just process requests synchronously — it uses a **message queue pattern** with BullMQ and Redis so the AI generation happens in a background worker, and the frontend gets notified in real-time through WebSockets.
 
@@ -102,37 +102,37 @@ This means:
 
 ---
 
-## 🏗️ High-Level Design (HLD)
+## High-Level Design (HLD)
 
 ### The 10,000-Foot View
 
 ```mermaid
 graph TD
-    subgraph Frontend ["🎨 Frontend (Next.js)"]
+    subgraph Frontend [" Frontend (Next.js)"]
         UI[UI Components]
         ZS[Zustand Stores]
         WS_C[Socket.IO Client]
     end
 
-    subgraph Backend ["⚙️ Backend (Express.js)"]
+    subgraph Backend [" Backend (Express.js)"]
         API[REST API Server]
         AUTH[Auth Middleware - JWT]
         WS_S[Socket.IO Server]
     end
 
-    subgraph Worker ["🔧 Background Worker"]
+    subgraph Worker [" Background Worker"]
         BW[BullMQ Worker]
         LLM_SVC[LLM Service]
         OCR[Tesseract.js OCR]
     end
 
-    subgraph External ["☁️ External Services"]
+    subgraph External [" External Services"]
         GROQ[Groq API - Llama 3.3]
         FB[Firebase Auth]
         SMTP[SMTP - Nodemailer]
     end
 
-    subgraph Data ["💾 Data Layer"]
+    subgraph Data [" Data Layer"]
         REDIS[(Redis - Upstash)]
         MONGO[(MongoDB Atlas)]
     end
@@ -186,11 +186,11 @@ We use a **hybrid auth strategy**: Firebase handles the OAuth complexity on the 
 
 ```mermaid
 sequenceDiagram
-    participant U as 👤 User
-    participant FE as 🎨 Frontend
-    participant FB as 🔥 Firebase
-    participant BE as ⚙️ Backend
-    participant DB as 💾 MongoDB
+    participant U as  User
+    participant FE as  Frontend
+    participant FB as  Firebase
+    participant BE as  Backend
+    participant DB as  MongoDB
 
     U->>FE: Click "Login with Google"
     FE->>FB: signInWithPopup()
@@ -214,16 +214,16 @@ This is the heart of VedaAI. Here's exactly what happens when a teacher clicks "
 
 ```mermaid
 sequenceDiagram
-    participant T as 👨‍🏫 Teacher
-    participant FE as 🎨 Frontend
-    participant API as ⚙️ Express API
-    participant Q as 📮 BullMQ Queue
-    participant R as 🔴 Redis
-    participant W as 🔧 Worker
-    participant OCR as 👁️ Tesseract/PDF Parser
-    participant AI as 🧠 Groq LLM
-    participant DB as 💾 MongoDB
-    participant WS as 🔌 Socket.IO
+    participant T as  Teacher
+    participant FE as  Frontend
+    participant API as  Express API
+    participant Q as  BullMQ Queue
+    participant R as  Redis
+    participant W as  Worker
+    participant OCR as  Tesseract/PDF Parser
+    participant AI as  Groq LLM
+    participant DB as  MongoDB
+    participant WS as  Socket.IO
 
     T->>FE: Upload PDF + Set params + Click "Generate"
     FE->>API: POST /api/generate (FormData)
@@ -442,12 +442,12 @@ VedaAI/
 │   └── package.json
 │
 ├── SYSTEM_DESIGN.md                 # Detailed system design document
-└── README.md                        # You are here! 👋
+└── README.md                        # You are here! 
 ```
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -536,11 +536,11 @@ NEXT_PUBLIC_BACKEND_URL="http://localhost:4000"
 npm run dev
 ```
 
-Navigate to `http://localhost:3000` and you're in business! 🎉
+Navigate to `http://localhost:3000` and you're done.
 
 ---
 
-## ☁️ Deployment Architecture
+## Deployment Architecture
 
 When deployed to production, the system splits into five independent services:
 
@@ -588,22 +588,3 @@ graph LR
 | **Auth** | Firebase | Handles Google OAuth token issuance and verification. |
 
 ---
-
-## 🤝 Contributing
-
-Found a bug? Want to add a feature that auto-grades the papers too? Pull requests are always welcome.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feat/amazing-feature`)
-3. Commit your changes (`git commit -m 'feat: add amazing feature'`)
-4. Push to the branch (`git push origin feat/amazing-feature`)
-5. Open a Pull Request
-
----
-
-<div align="center">
-  <br/>
-  <strong>Built with ❤️ and entirely too much caffeine by Swagato.</strong>
-  <br/><br/>
-  <em>If the system goes down, did you try turning it off and on again?</em>
-</div>
