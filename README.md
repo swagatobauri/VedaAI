@@ -31,7 +31,6 @@
 - [Project Structure](#-project-structure)
 - [Getting Started](#-getting-started)
 - [Deployment](#-deployment-architecture)
-- [Contributing](#-contributing)
 
 ---
 
