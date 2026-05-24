@@ -273,13 +273,13 @@ export function CreateAssignment({ onGenerateSuccess }: CreateAssignmentProps) {
           <label className="block text-[14px] font-bold text-gray-900 mb-3">Due Date</label>
           <div className="relative flex items-center w-full">
             <input
-              type="text"
-              placeholder="DD-MM-YYYY"
+              type="date"
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
-              className="w-full h-[46px] px-4 border border-gray-200 rounded-full text-[14px] text-gray-900 focus:outline-none focus:border-gray-300 placeholder-gray-400"
+              className="w-full h-[46px] px-4 border border-gray-200 rounded-full text-[14px] focus:outline-none focus:border-gray-300 bg-transparent relative z-10 cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+              style={{ color: dueDate ? '#111827' : '#9ca3af' }}
             />
-            <Calendar size={18} className="absolute right-4 text-gray-900" />
+            <Calendar size={18} className="absolute right-4 text-gray-900 z-0" />
           </div>
         </div>
 
