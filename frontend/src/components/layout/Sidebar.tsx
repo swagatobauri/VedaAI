@@ -6,12 +6,12 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useAuthStore } from "@/store/useAuthStore";
-import { 
-  LayoutGrid, 
-  Users, 
-  FileText, 
-  Sparkles, 
-  Clock, 
+import {
+  LayoutGrid,
+  Users,
+  FileText,
+  Sparkles,
+  Clock,
   Settings,
   LogOut,
   ChevronRight
@@ -35,7 +35,7 @@ export function Sidebar({ onCreateClick }: SidebarProps) {
         if (!authHeader) return;
 
         const res = await fetch("/api/assignments", {
-          headers: { 
+          headers: {
             Authorization: authHeader,
             'X-Veda-Auth': authHeader
           }
@@ -59,33 +59,25 @@ export function Sidebar({ onCreateClick }: SidebarProps) {
 
   return (
     <div className="hidden md:flex flex-col w-[304px] fixed top-[12px] left-[12px] bottom-[12px] bg-white rounded-2xl p-6 justify-between shadow-[0_8px_30px_rgb(0,0,0,0.08)] z-50">
-      
+
       {/* Top Section */}
       <div className="space-y-6">
         {/* Logo */}
-        <Link href="/dashboard" className="flex items-center gap-2 px-2 cursor-pointer hover:opacity-80 transition-opacity">
-          <div className="relative w-[40px] h-[40px] flex-shrink-0">
-            <Image 
-              src="/assets/logo.svg" 
-              alt="VedaAI Logo Base" 
-              width={40}
-              height={40}
-              className="absolute top-0 left-0"
-            />
-            <Image 
-              src="/assets/upperlayerlogo.svg" 
-              alt="VedaAI Logo Upper Layer" 
-              width={40}
-              height={40}
-              className="absolute top-0 left-0 z-10"
+        <Link href="/dashboard" className="flex items-center gap-0 px-2 cursor-pointer hover:opacity-80 transition-opacity">
+          <div className="relative w-[64px] h-[64px] flex-shrink-0">
+            <Image
+              src="/assets/vedaAILOGO.png"
+              alt="VedaAI Logo"
+              fill
+              className="object-contain"
             />
           </div>
-          <span 
-            className="text-gray-900 font-[family-name:var(--font-bricolage)] font-bold align-middle"
-            style={{ 
-              fontSize: '28px', 
-              letterSpacing: '-0.06em', 
-              lineHeight: '1.2' 
+          <span
+            className="text-gray-900 font-[family-name:var(--font-bricolage)] font-bold align-middle -ml-1"
+            style={{
+              fontSize: '32px',
+              letterSpacing: '-0.06em',
+              lineHeight: '1.2'
             }}
           >
             VedaAI
@@ -93,7 +85,7 @@ export function Sidebar({ onCreateClick }: SidebarProps) {
         </Link>
 
         {/* Create Assignment Button */}
-        <button 
+        <button
           onClick={() => {
             if (onCreateClick) onCreateClick();
             else window.location.href = '/assignments';
@@ -103,17 +95,17 @@ export function Sidebar({ onCreateClick }: SidebarProps) {
             border: '4px solid transparent',
             background: 'linear-gradient(#272727, #272727) padding-box, linear-gradient(90deg, #FF7950 0%, #C0350A 100%) border-box',
             fontFamily: 'var(--font-inter), sans-serif',
-            fontSize: '14px', 
+            fontSize: '14px',
             fontWeight: 500,
-            lineHeight: '28px', 
-            letterSpacing: '-0.04em' 
+            lineHeight: '28px',
+            letterSpacing: '-0.04em'
           }}
         >
-          <Image 
-            src="/assets/Sparkles.png" 
-            alt="Sparkles" 
-            width={18} 
-            height={18} 
+          <Image
+            src="/assets/Sparkles.png"
+            alt="Sparkles"
+            width={18}
+            height={18}
             className="object-contain align-middle w-auto h-auto"
           />
           <span className="align-middle">
@@ -159,11 +151,11 @@ export function Sidebar({ onCreateClick }: SidebarProps) {
           <Settings size={18} />
           Settings
         </Link>
-        
+
         {/* User Profile */}
         <div className="flex items-center gap-3 p-3 bg-gray-100 rounded-2xl">
           <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center overflow-hidden shrink-0 text-orange-600 font-bold">
-             {user?.name ? user.name.charAt(0) : "🧔‍♂️"}
+            {user?.name ? user.name.charAt(0) : "🧔‍♂️"}
           </div>
           <div className="flex flex-col overflow-hidden flex-1">
             <span className="text-sm font-semibold text-gray-900 truncate">{user ? (user.name || "Teacher") : "Guest User"}</span>
@@ -171,7 +163,7 @@ export function Sidebar({ onCreateClick }: SidebarProps) {
           </div>
         </div>
 
-        <button 
+        <button
           onClick={handleLogout}
           className="w-full flex items-center gap-3 px-4 py-3 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors text-sm font-medium"
         >
