@@ -1,5 +1,7 @@
 import 'dotenv/config';
 import express, { Request, Response, NextFunction } from 'express';
+import http from 'http';
+import { Server } from 'socket.io';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import multer from 'multer';
@@ -13,10 +15,22 @@ import { parseDocument, generateQuestionPaper } from './services/llmService';
 import authRoutes from './routes/authRoutes';
 import { groupRouter } from './routes/groupRoute';
 import { sendAssignmentEmails } from './services/emailService';
+import { assignmentQueue } from './services/queue';
+import { startWorker } from './worker';
 
 dotenv.config();
 
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    methods: ["GET", "POST"]
+  }
+});
+
+// Start the background worker
+startWorker(io);
 export const prisma = new PrismaClient();
 const PORT = process.env.PORT || 4000;
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_key_for_dev';
@@ -118,9 +132,6 @@ app.post('/api/generate', requireAuth, upload.single('document'), async (req: Au
       documentId = document.id;
     }
 
-    // Process document text
-    const contextText = await parseDocument(file.path, file.mimetype);
-
     // Create an initial draft assignment (skip if guest)
     let assignment = null;
     if (!req.isGuest && req.user) {
@@ -135,37 +146,20 @@ app.post('/api/generate', requireAuth, upload.single('document'), async (req: Au
       });
     }
 
-    // Generate questions using LLM
-    const paperJson = await generateQuestionPaper(contextText, {
+    // Enqueue the background job
+    const job = await assignmentQueue.add('generate-paper', {
+      assignmentId: assignment?.id || `guest-${Date.now()}`,
+      filePath: file.path,
+      mimeType: file.mimetype,
       dueDate,
       totalQuestions: parsedTotalQuestions,
       totalMarks: parsedTotalMarks,
       additionalInfo,
-      questionTypes: parsedQuestionTypes
+      questionTypes: parsedQuestionTypes,
+      isGuest: req.isGuest
     });
 
-    // Update assignment with generated JSON
-    if (!req.isGuest && assignment) {
-      assignment = await prisma.assignment.update({
-        where: { id: assignment.id },
-        data: {
-          status: 'COMPLETED',
-          paperJson: JSON.stringify(paperJson)
-        }
-      });
-    } else {
-      // If guest, create a virtual assignment object to return
-      assignment = {
-        id: 'guest-' + Date.now(),
-        title,
-        dueDate,
-        totalMarks: parsedTotalMarks,
-        status: 'COMPLETED',
-        paperJson: JSON.stringify(paperJson)
-      };
-    }
-
-    res.json(assignment);
+    res.json({ message: "Job queued", jobId: job.id, assignmentId: assignment?.id });
   } catch (error) {
     console.error('Generation Error:', error);
     res.status(500).json({ error: 'Failed to generate assignment' });
@@ -269,6 +263,6 @@ app.post('/api/assignments/:id/send', requireAuth, async (req: AuthRequest, res:
     res.status(500).json({ error: 'Failed to send assignment' });
   }
 });
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Backend server running on http://localhost:${PORT}`);
 });

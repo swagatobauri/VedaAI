@@ -3,11 +3,10 @@
 import { ArrowLeft, Bell, ChevronDown, LayoutGrid, Menu, LogOut } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useAuth } from "@/context/AuthContext";
-
 import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { useNotifications } from "@/context/NotificationContext";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useNotificationStore } from "@/store/useNotificationStore";
 
 interface HeaderProps {
   onBack?: () => void;
@@ -16,11 +15,11 @@ interface HeaderProps {
 }
 
 export function Header({ onBack, isCreating, title }: HeaderProps) {
-  const { user, logout } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
   
-  const { notifications, unreadCount, markAllAsRead } = useNotifications();
+  const { user, logout } = useAuthStore();
+  const { notifications, unreadCount, markAllAsRead } = useNotificationStore();
   const [showNotifications, setShowNotifications] = useState(false);
   
   const getTitle = () => {

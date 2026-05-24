@@ -8,15 +8,15 @@ import { MobileNav } from "@/components/layout/MobileNav";
 import { AssignmentList } from "@/components/dashboard/AssignmentList";
 import { CreateAssignment } from "@/components/dashboard/CreateAssignment";
 import { AssignmentOutput } from "@/components/dashboard/AssignmentOutput";
-import { useAuth } from "@/context/AuthContext";
-import { useNotifications } from "@/context/NotificationContext";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useNotificationStore } from "@/store/useNotificationStore";
 
 export default function Home() {
   const [view, setView] = useState<'list' | 'create' | 'output'>('list');
   const [generatedPaper, setGeneratedPaper] = useState<any>(null);
   const [currentAssignmentId, setCurrentAssignmentId] = useState<string | null>(null);
 
-  const { user, isGuest, loading } = useAuth();
+  const { user, isGuest, loading } = useAuthStore();
   const router = useRouter();
 
   useEffect(() => {
@@ -30,7 +30,7 @@ export default function Home() {
     if (view === 'output') setView('list');
   };
 
-  const { addNotification } = useNotifications();
+  const addNotification = useNotificationStore((state) => state.addNotification);
 
   const handleGenerateSuccess = (result: any, paper: any) => {
     // result is the DB object, paper is the parsed JSON
@@ -67,7 +67,7 @@ export default function Home() {
 
         {/* Dashboard Content */}
         <main className="flex-1 overflow-y-auto w-full relative mt-[38px] md:mt-[22px] print:mt-0 print:overflow-visible print:h-auto print:block">
-          <div className="h-full flex flex-col items-center justify-start p-4 print:p-0 print:h-auto print:block">
+          <div className="min-h-full flex flex-col items-center justify-start p-4 print:p-0 print:h-auto print:block">
             {view === 'create' && (
               <CreateAssignment onGenerateSuccess={handleGenerateSuccess} />
             )}
@@ -90,7 +90,7 @@ export default function Home() {
 
       {/* Mobile Bottom Nav */}
       <div className="print:hidden">
-        <MobileNav onCreateClick={() => setView('create')} />
+        <MobileNav onCreateClick={() => setView('create')} hideFab={view !== 'list'} />
       </div>
     </div>
   );

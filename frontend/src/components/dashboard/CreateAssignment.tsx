@@ -4,6 +4,7 @@ import { useState } from "react";
 import Cookies from "js-cookie";
 import { ArrowLeft, ArrowRight, Calendar, CloudUpload, Mic, Minus, Plus, X, ChevronDown, FileText, Loader2, FileSearch, BrainCircuit, CheckCircle2 } from "lucide-react";
 import { useEffect } from "react";
+import { io } from "socket.io-client";
 interface QuestionTypeRow {
   id: string;
   type: string;
@@ -71,8 +72,8 @@ export function CreateAssignment({ onGenerateSuccess }: CreateAssignmentProps) {
     let interval: NodeJS.Timeout;
     if (isGenerating) {
       interval = setInterval(() => {
-        setGenerationStep((prev) => (prev < 3 ? prev + 1 : prev));
-      }, 3500); // Progress steps roughly every 3.5 seconds
+        setGenerationStep((prev) => (prev < 2 ? prev + 1 : prev));
+      }, 3500); // Progress steps roughly every 3.5 seconds, but wait at step 2 for WebSocket
     } else {
       setGenerationStep(0);
     }
@@ -109,21 +110,42 @@ export function CreateAssignment({ onGenerateSuccess }: CreateAssignmentProps) {
 
       if (generateRes.ok) {
         const result = await generateRes.json();
-        console.log("Backend response:", result);
-        if (onGenerateSuccess) {
-          const paper = JSON.parse(result.paperJson);
-          onGenerateSuccess(result, paper);
-        }
+        console.log("Job Queued:", result);
+        
+        // Connect to WebSocket to listen for job completion
+        const socket = io(process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000");
+
+        socket.on("job-completed", (data: any) => {
+          if (data.jobId === result.jobId) {
+            setGenerationStep(3); // Final step
+            setTimeout(() => {
+              setIsGenerating(false);
+              if (onGenerateSuccess) {
+                onGenerateSuccess({ id: data.assignmentId }, data.paper);
+              }
+              socket.disconnect();
+            }, 1000);
+          }
+        });
+
+        socket.on("job-failed", (data: any) => {
+          if (data.jobId === result.jobId) {
+            setIsGenerating(false);
+            alert("VedaAI failed to generate this document. Please try again.");
+            socket.disconnect();
+          }
+        });
+
       } else {
         const errorText = await generateRes.text();
         console.error("Failed to generate assignment:", errorText);
         alert("Error sending request to backend: " + errorText);
+        setIsGenerating(false);
       }
 
     } catch (error) {
       console.error("Error submitting form:", error);
       alert("Network error: Could not connect to backend.");
-    } finally {
       setIsGenerating(false);
     }
   };
@@ -352,7 +374,7 @@ export function CreateAssignment({ onGenerateSuccess }: CreateAssignmentProps) {
       </div>
 
       {/* Bottom Actions */}
-      <div className="flex items-center justify-between w-full max-w-[900px] mx-auto mt-8">
+      <div className="flex items-center justify-between w-full max-w-[900px] mx-auto mt-6">
         <button className="flex items-center gap-2 bg-white text-gray-900 h-[46px] px-6 rounded-full font-bold text-[14px] shadow-sm hover:bg-gray-50 transition-colors">
           <ArrowLeft size={16} strokeWidth={2.5} />
           Previous
@@ -366,6 +388,9 @@ export function CreateAssignment({ onGenerateSuccess }: CreateAssignmentProps) {
           {!isGenerating && <ArrowRight size={16} strokeWidth={2.5} />}
         </button>
       </div>
+
+      {/* Spacer to guarantee scrollable gap under the buttons */}
+      <div className="h-[120px] w-full flex-shrink-0"></div>
 
     </div>
   );

@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Bricolage_Grotesque, Inter } from "next/font/google";
 import "./globals.css";
-import { AuthProvider } from "@/context/AuthContext";
-import { NotificationProvider } from "@/context/NotificationContext";
+import { ZustandProvider } from "@/store/ZustandProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -42,11 +41,9 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} ${bricolage.variable} ${inter.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <NotificationProvider>
-          <AuthProvider>
-            {children}
-          </AuthProvider>
-        </NotificationProvider>
+        <ZustandProvider>
+          {children}
+        </ZustandProvider>
       </body>
     </html>
   );

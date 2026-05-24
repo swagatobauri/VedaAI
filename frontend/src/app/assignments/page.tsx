@@ -7,7 +7,7 @@ import { MobileNav } from "@/components/layout/MobileNav";
 import { AssignmentList } from "@/components/dashboard/AssignmentList";
 import { CreateAssignment } from "@/components/dashboard/CreateAssignment";
 import { AssignmentOutput } from "@/components/dashboard/AssignmentOutput";
-import { useNotifications } from "@/context/NotificationContext";
+import { useNotificationStore } from "@/store/useNotificationStore";
 
 export default function AssignmentsPage() {
   const [view, setView] = useState<'list' | 'create' | 'output'>('list');
@@ -17,7 +17,7 @@ export default function AssignmentsPage() {
     setView('list');
   };
 
-  const { addNotification } = useNotifications();
+  const addNotification = useNotificationStore((state) => state.addNotification);
 
   const handleGenerateSuccess = (paperPayload: any) => {
     setGeneratedPaper(paperPayload);
@@ -43,7 +43,7 @@ export default function AssignmentsPage() {
           <Header isCreating={view !== 'list'} onBack={view !== 'list' ? handleBack : undefined} />
         </div>
         <main className="flex-1 overflow-y-auto w-full relative mt-[38px] md:mt-[22px] print:mt-0 print:overflow-visible print:h-auto print:block">
-          <div className="h-full flex flex-col items-center justify-start p-4 print:p-0 print:h-auto print:block">
+          <div className="min-h-full flex flex-col items-center justify-start p-4 print:p-0 print:h-auto print:block">
             {view === 'create' && (
               <CreateAssignment onGenerateSuccess={handleGenerateSuccess} />
             )}
@@ -59,7 +59,7 @@ export default function AssignmentsPage() {
           </div>
         </main>
       </div>
-      <div className="print:hidden"><MobileNav onCreateClick={() => setView('create')} /></div>
+      <div className="print:hidden"><MobileNav onCreateClick={() => setView('create')} hideFab={view !== 'list'} /></div>
     </div>
   );
 }

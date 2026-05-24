@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { useAuth } from "@/context/AuthContext";
+import { useAuthStore } from "@/store/useAuthStore";
 import { ArrowRight, Sparkles, Mail, Lock, Eye, EyeOff } from "lucide-react";
 
 export default function AuthPage() {
@@ -18,7 +18,7 @@ export default function AuthPage() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isHovering, setIsHovering] = useState(false);
   
-  const { user, isGuest, loading, login, loginWithGoogle, continueAsGuest } = useAuth();
+  const { user, isGuest, loading, login, loginWithGoogle, continueAsGuest } = useAuthStore();
   const router = useRouter();
 
   useEffect(() => {

@@ -8,9 +8,10 @@ import { LayoutGrid, FileText, Clock, Sparkles, Plus } from "lucide-react";
 
 interface MobileNavProps {
   onCreateClick?: () => void;
+  hideFab?: boolean;
 }
 
-export function MobileNav({ onCreateClick }: MobileNavProps) {
+export function MobileNav({ onCreateClick, hideFab = false }: MobileNavProps) {
   const pathname = usePathname();
   const [assignmentCount, setAssignmentCount] = useState(0);
 
@@ -41,17 +42,19 @@ export function MobileNav({ onCreateClick }: MobileNavProps) {
   return (
     <>
       {/* Floating Action Button */}
-      <div className="md:hidden fixed bottom-[110px] right-[10px] z-50">
-        <button 
-          onClick={() => {
-            if (onCreateClick) onCreateClick();
-            else window.location.href = '/assignments';
-          }}
-          className="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100 text-orange-500 hover:scale-105 transition-transform"
-        >
-          <Plus size={28} strokeWidth={2.5} />
-        </button>
-      </div>
+      {!hideFab && (
+        <div className="md:hidden fixed bottom-[110px] right-[10px] z-50">
+          <button 
+            onClick={() => {
+              if (onCreateClick) onCreateClick();
+              else window.location.href = '/assignments';
+            }}
+            className="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100 text-orange-500 hover:scale-105 transition-transform"
+          >
+            <Plus size={28} strokeWidth={2.5} />
+          </button>
+        </div>
+      )}
 
       {/* Bottom Navigation */}
       <div className="md:hidden fixed bottom-[24px] left-[10px] right-[10px] h-[72px] bg-[#18181B] text-[#6B7280] rounded-[32px] flex items-center justify-around px-4 z-40 shadow-2xl">

@@ -5,7 +5,7 @@ import Cookies from "js-cookie";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
+import { useAuthStore } from "@/store/useAuthStore";
 import { 
   LayoutGrid, 
   Users, 
@@ -23,7 +23,7 @@ interface SidebarProps {
 
 export function Sidebar({ onCreateClick }: SidebarProps) {
   const pathname = usePathname();
-  const { user, isGuest, logout } = useAuth();
+  const { user, isGuest, logout } = useAuthStore();
   const [assignmentCount, setAssignmentCount] = useState(0);
 
   useEffect(() => {
