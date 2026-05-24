@@ -138,7 +138,7 @@ export function CreateAssignment({ onGenerateSuccess }: CreateAssignmentProps) {
         socket.on("job-failed", (data: any) => {
           if (data.jobId === result.jobId) {
             setIsGenerating(false);
-            alert("VedaAI failed to generate this document. Please try again.");
+            alert(data.error || "VedaAI failed to generate this document. Please try again.");
             socket.disconnect();
           }
         });

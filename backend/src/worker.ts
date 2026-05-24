@@ -70,7 +70,7 @@ export function startWorker(io: any) {
 
       return updatedAssignment;
 
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Job ${job.id} failed:`, error);
       
       if (!isGuest && assignmentId) {
@@ -80,10 +80,15 @@ export function startWorker(io: any) {
         });
       }
 
+      let errorMessage = "Failed to generate paper";
+      if (error?.message?.includes('Rate limit') || error?.status === 429) {
+        errorMessage = "Daily AI generation limit reached for this premium model. Please try uploading the next document after some time.";
+      }
+
       io.emit('job-failed', {
         jobId: job.id,
         assignmentId,
-        error: "Failed to generate paper"
+        error: errorMessage
       });
 
       throw error;
