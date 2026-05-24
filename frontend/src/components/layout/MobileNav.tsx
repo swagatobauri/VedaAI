@@ -41,6 +41,18 @@ export function MobileNav({ onCreateClick, hideFab = false }: MobileNavProps) {
 
   return (
     <>
+      {/* Mobile Blur Fade Overlay */}
+      <div 
+        className="md:hidden fixed bottom-0 left-0 right-0 h-[150px] pointer-events-none z-30"
+        style={{
+          background: 'linear-gradient(to top, rgba(237,237,237,1) 30%, rgba(237,237,237,0.5) 70%, transparent 100%)',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
+          WebkitMaskImage: 'linear-gradient(to top, black 60%, transparent 100%)',
+          maskImage: 'linear-gradient(to top, black 60%, transparent 100%)'
+        }}
+      />
+
       {/* Floating Action Button */}
       {!hideFab && (
         <div className="md:hidden fixed bottom-[110px] right-[10px] z-50">

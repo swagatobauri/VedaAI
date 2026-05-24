@@ -246,7 +246,16 @@ export function AssignmentList({ onCreateClick, onViewAssignment }: AssignmentLi
 
       {/* Floating Create Assignment Button Area (Desktop) */}
       {!loading && assignments.length > 0 && (
-        <div className="hidden md:flex fixed bottom-0 left-0 right-0 pl-[328px] h-[160px] pointer-events-none items-end justify-center pb-[40px] bg-gradient-to-t from-[#EDEDED] via-[#EDEDED]/80 to-transparent z-20">
+        <div 
+          className="hidden md:flex fixed bottom-0 left-0 right-0 pl-[328px] h-[160px] pointer-events-none items-end justify-center pb-[40px] z-20"
+          style={{
+            background: 'linear-gradient(to top, rgba(237,237,237,1) 20%, rgba(237,237,237,0.6) 60%, transparent 100%)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            WebkitMaskImage: 'linear-gradient(to top, black 50%, transparent 100%)',
+            maskImage: 'linear-gradient(to top, black 50%, transparent 100%)'
+          }}
+        >
           <button 
             onClick={onCreateClick}
             className="pointer-events-auto flex items-center justify-center gap-2 bg-[#18181B] text-white h-[46px] px-6 rounded-full transition-colors text-sm font-medium shadow-xl hover:bg-black border-[1.5px] border-white/10"

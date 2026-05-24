@@ -103,7 +103,7 @@ You MUST respond with a raw, valid JSON object containing exactly the following 
         { role: 'system', content: 'You are a helpful teaching assistant that only outputs valid JSON. Always complete the entire generation without cutting off.' },
         { role: 'user', content: prompt }
       ],
-      model: 'llama-3.3-70b-versatile',
+      model: 'llama-3.1-8b-instant',
       temperature: 0.2,
       max_tokens: 4000,
       response_format: { type: "json_object" }

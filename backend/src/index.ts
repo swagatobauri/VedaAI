@@ -103,12 +103,12 @@ app.post('/api/upload', upload.single('file'), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: 'No file uploaded' });
   }
-  
+
   // Here we would eventually process the file for RAG
   console.log(`[File Uploaded] ${req.file.originalname} saved to ${req.file.path}`);
-  
-  res.json({ 
-    message: 'File uploaded successfully', 
+
+  res.json({
+    message: 'File uploaded successfully',
     filename: req.file.filename,
     path: req.file.path
   });
@@ -220,7 +220,7 @@ app.delete('/api/assignments/:id', requireAuth, async (req: AuthRequest, res: Re
     }
 
     const id = req.params.id as string;
-    
+
     const assignment = await prisma.assignment.findUnique({ where: { id } });
     if (!assignment || assignment.userId !== req.user?.userId) {
       res.status(404).json({ error: 'Assignment not found or unauthorized' });
@@ -230,7 +230,7 @@ app.delete('/api/assignments/:id', requireAuth, async (req: AuthRequest, res: Re
     await prisma.assignment.delete({
       where: { id }
     });
-    
+
     res.json({ success: true });
   } catch (error) {
     console.error('Error deleting assignment:', error);
@@ -271,7 +271,7 @@ app.post('/api/assignments/:id/send', requireAuth, async (req: AuthRequest, res:
     // In a production app, we'd generate a PDF here, but for now we'll simulate sending
     // an email with a mock PDF buffer or a text format of the JSON.
     const emails = JSON.parse(group.emails);
-    
+
     // Create a mock buffer (in real app: convert assignment.paperJson to PDF buffer)
     const mockPdfBuffer = Buffer.from("Mock PDF Content - " + assignment.title);
 

@@ -30,7 +30,7 @@ export function CreateAssignment({ onGenerateSuccess }: CreateAssignmentProps) {
   const [classLevel, setClassLevel] = useState("");
   const [additionalInfo, setAdditionalInfo] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  
+
   const [questionTypes, setQuestionTypes] = useState<QuestionTypeRow[]>([
     { id: "1", type: "Multiple Choice Questions", questions: 4, marks: 1 },
     { id: "2", type: "Short Questions", questions: 3, marks: 2 },
@@ -108,7 +108,7 @@ export function CreateAssignment({ onGenerateSuccess }: CreateAssignmentProps) {
 
       const generateRes = await fetch("/api/generate", {
         method: "POST",
-        headers: { 
+        headers: {
           Authorization: authHeader,
           'X-Veda-Auth': authHeader
         },
@@ -118,7 +118,7 @@ export function CreateAssignment({ onGenerateSuccess }: CreateAssignmentProps) {
       if (generateRes.ok) {
         const result = await generateRes.json();
         console.log("Job Queued:", result);
-        
+
         // Connect to WebSocket to listen for job completion
         const socket = io(process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000");
 
@@ -170,12 +170,12 @@ export function CreateAssignment({ onGenerateSuccess }: CreateAssignmentProps) {
         <div className="bg-white rounded-[32px] p-10 shadow-xl w-full max-w-[600px] flex flex-col items-center relative overflow-hidden">
           {/* Decorative background glow */}
           <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-orange-400 via-blue-500 to-purple-500"></div>
-          
+
           <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-6 shadow-inner relative">
             <Loader2 size={36} className="text-orange-500 animate-spin absolute" />
             <BrainCircuit size={20} className="text-gray-900" />
           </div>
-          
+
           <h2 className="text-[24px] font-bold text-gray-900 font-[family-name:var(--font-bricolage)] mb-2 text-center">
             Creating Your Assignment
           </h2>
@@ -187,10 +187,10 @@ export function CreateAssignment({ onGenerateSuccess }: CreateAssignmentProps) {
             {steps.map((step, index) => {
               const isActive = index === generationStep;
               const isPast = index < generationStep;
-              
+
               return (
-                <div 
-                  key={index} 
+                <div
+                  key={index}
                   className={`flex items-center gap-4 p-4 rounded-2xl transition-all duration-500 ${isActive ? 'bg-gray-50 border border-gray-100 scale-100 opacity-100 shadow-sm' : isPast ? 'opacity-60 scale-95 grayscale' : 'opacity-30 scale-95 grayscale'}`}
                 >
                   <div className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 ${isActive ? 'bg-white shadow-sm' : 'bg-gray-100'}`}>
@@ -218,7 +218,7 @@ export function CreateAssignment({ onGenerateSuccess }: CreateAssignmentProps) {
 
   return (
     <div className="w-full max-w-[1100px] mx-auto min-h-[500px] pb-[140px] px-4 md:px-0 pt-6">
-      
+
       {/* Title Area */}
       <div className="flex flex-col gap-1 px-[8px]">
         <div className="flex items-center gap-2">
@@ -236,15 +236,15 @@ export function CreateAssignment({ onGenerateSuccess }: CreateAssignmentProps) {
 
       {/* Main Form Card */}
       <div className="bg-white rounded-[24px] p-5 md:p-8 shadow-sm mt-8 w-full max-w-[900px] mx-auto">
-        
+
         <h3 className="text-[18px] font-bold text-gray-900 font-[family-name:var(--font-bricolage)]">Assignment Details</h3>
         <p className="text-[13px] text-gray-400 font-medium mt-1">Basic information about your assignment</p>
 
         {/* Upload Area */}
         <label className="mt-6 border-2 border-dashed border-gray-200 rounded-[16px] h-[180px] flex flex-col items-center justify-center gap-3 bg-gray-50/50 hover:bg-gray-50 transition-colors cursor-pointer relative overflow-hidden">
-          <input 
-            type="file" 
-            className="absolute inset-0 opacity-0 cursor-pointer" 
+          <input
+            type="file"
+            className="absolute inset-0 opacity-0 cursor-pointer"
             onChange={handleFileChange}
             accept=".jpg,.jpeg,.png,.pdf"
           />
@@ -273,9 +273,9 @@ export function CreateAssignment({ onGenerateSuccess }: CreateAssignmentProps) {
         <div className="mt-8">
           <label className="block text-[14px] font-bold text-gray-900 mb-3">Due Date</label>
           <div className="relative flex items-center w-full">
-            <input 
-              type="text" 
-              placeholder="DD-MM-YYYY" 
+            <input
+              type="text"
+              placeholder="DD-MM-YYYY"
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
               className="w-full h-[46px] px-4 border border-gray-200 rounded-full text-[14px] text-gray-900 focus:outline-none focus:border-gray-300 placeholder-gray-400"
@@ -288,9 +288,9 @@ export function CreateAssignment({ onGenerateSuccess }: CreateAssignmentProps) {
         <div className="mt-8 flex gap-4 w-full">
           <div className="flex-1">
             <label className="block text-[14px] font-bold text-gray-900 mb-3">Subject</label>
-            <input 
-              type="text" 
-              placeholder="e.g. Science, Mathematics" 
+            <input
+              type="text"
+              placeholder="e.g. Science, Mathematics"
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
               className="w-full h-[46px] px-4 border border-gray-200 rounded-[16px] text-[14px] text-gray-900 focus:outline-none focus:border-gray-300 placeholder-gray-400"
@@ -298,9 +298,9 @@ export function CreateAssignment({ onGenerateSuccess }: CreateAssignmentProps) {
           </div>
           <div className="flex-1">
             <label className="block text-[14px] font-bold text-gray-900 mb-3">Class / Grade</label>
-            <input 
-              type="text" 
-              placeholder="e.g. 5th Grade, High School" 
+            <input
+              type="text"
+              placeholder="e.g. 5th Grade, High School"
               value={classLevel}
               onChange={(e) => setClassLevel(e.target.value)}
               className="w-full h-[46px] px-4 border border-gray-200 rounded-[16px] text-[14px] text-gray-900 focus:outline-none focus:border-gray-300 placeholder-gray-400"
@@ -310,7 +310,7 @@ export function CreateAssignment({ onGenerateSuccess }: CreateAssignmentProps) {
 
         {/* Question Type */}
         <div className="mt-10">
-          
+
           <div className="flex justify-between items-center mb-4">
             <label className="text-[14px] font-bold text-gray-900">Question Type</label>
             <div className="flex gap-[40px] text-[13px] text-gray-900 font-medium pr-4">
@@ -323,7 +323,7 @@ export function CreateAssignment({ onGenerateSuccess }: CreateAssignmentProps) {
             {questionTypes.map((row) => (
               <div key={row.id} className="flex items-center gap-4">
                 <div className="relative flex-1">
-                  <select 
+                  <select
                     value={row.type}
                     onChange={(e) => handleUpdateRow(row.id, "type", e.target.value)}
                     className="w-full h-[46px] px-5 border border-gray-100 rounded-full text-[14px] font-medium text-gray-900 appearance-none bg-white shadow-sm focus:outline-none"
@@ -332,22 +332,22 @@ export function CreateAssignment({ onGenerateSuccess }: CreateAssignmentProps) {
                   </select>
                   <ChevronDown size={16} className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
                 </div>
-                
-                <button 
+
+                <button
                   onClick={() => handleRemoveQuestionType(row.id)}
                   className="text-gray-400 hover:text-red-500 transition-colors"
                 >
                   <X size={16} />
                 </button>
-                
+
                 {/* No. of Questions Counter */}
                 <div className="flex items-center justify-between w-[90px] h-[40px] bg-gray-50 rounded-full px-3 border border-gray-100">
-                  <button 
+                  <button
                     onClick={() => handleUpdateRow(row.id, "questions", Math.max(1, row.questions - 1))}
                     className="text-gray-400 hover:text-gray-900"
                   ><Minus size={14} /></button>
                   <span className="text-[14px] font-bold text-gray-900">{row.questions}</span>
-                  <button 
+                  <button
                     onClick={() => handleUpdateRow(row.id, "questions", row.questions + 1)}
                     className="text-gray-400 hover:text-gray-900"
                   ><Plus size={14} /></button>
@@ -355,12 +355,12 @@ export function CreateAssignment({ onGenerateSuccess }: CreateAssignmentProps) {
 
                 {/* Marks Counter */}
                 <div className="flex items-center justify-between w-[90px] h-[40px] bg-gray-50 rounded-full px-3 border border-gray-100">
-                  <button 
+                  <button
                     onClick={() => handleUpdateRow(row.id, "marks", Math.max(1, row.marks - 1))}
                     className="text-gray-400 hover:text-gray-900"
                   ><Minus size={14} /></button>
                   <span className="text-[14px] font-bold text-gray-900">{row.marks}</span>
-                  <button 
+                  <button
                     onClick={() => handleUpdateRow(row.id, "marks", row.marks + 1)}
                     className="text-gray-400 hover:text-gray-900"
                   ><Plus size={14} /></button>
@@ -369,7 +369,7 @@ export function CreateAssignment({ onGenerateSuccess }: CreateAssignmentProps) {
             ))}
           </div>
 
-          <button 
+          <button
             onClick={handleAddQuestionType}
             className="flex items-center gap-2 mt-6 text-[13px] font-bold text-gray-900 hover:text-green-600 transition-colors"
           >
@@ -390,10 +390,10 @@ export function CreateAssignment({ onGenerateSuccess }: CreateAssignmentProps) {
         <div className="mt-8">
           <label className="block text-[14px] font-bold text-gray-900 mb-3">Additional Information (For better output)</label>
           <div className="relative w-full h-[120px]">
-            <textarea 
+            <textarea
               value={additionalInfo}
               onChange={(e) => setAdditionalInfo(e.target.value)}
-              placeholder="e.g Generate a question paper for 3 hour exam duration..." 
+              placeholder="e.g Generate a question paper for 3 hour exam duration..."
               className="w-full h-full p-4 bg-gray-50 border border-dashed border-gray-200 rounded-[16px] text-[13px] text-gray-900 focus:outline-none placeholder-gray-400 resize-none"
             ></textarea>
             <button className="absolute bottom-4 right-4 text-gray-700 bg-gray-200/50 p-2 rounded-full hover:bg-gray-200 transition-colors">
@@ -410,7 +410,7 @@ export function CreateAssignment({ onGenerateSuccess }: CreateAssignmentProps) {
           <ArrowLeft size={16} strokeWidth={2.5} />
           Previous
         </button>
-        <button 
+        <button
           onClick={handleNext}
           disabled={isGenerating}
           className={`flex items-center gap-2 bg-[#18181B] text-white h-[46px] px-8 rounded-full font-bold text-[14px] shadow-lg transition-colors ${isGenerating ? 'opacity-50 cursor-not-allowed' : 'hover:bg-black'}`}
